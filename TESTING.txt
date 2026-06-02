@@ -29,7 +29,7 @@ Step 3：啟動前端（另開一個 terminal）
 ---------------------------------------
 cd web
 
-建立 .env.local 檔案，內容如下：
+建立 .env 檔案，內容如下：
   VITE_API_URL=http://localhost:8787
   VITE_API_KEY=dev-secret-key-change-in-prod
 
