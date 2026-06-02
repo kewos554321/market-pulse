@@ -1,0 +1,29 @@
+name: Market Pulse Scheduler
+
+on:
+  schedule:
+    - cron: '35 6 * * 1-5'  # 14:35 Taiwan time (UTC+8), weekdays only
+  workflow_dispatch:          # Manual trigger for testing
+
+jobs:
+  run-scheduler:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: scheduler/package-lock.json
+
+      - name: Install dependencies
+        run: cd scheduler && npm ci
+
+      - name: Run scheduler
+        env:
+          WORKERS_API_URL: ${{ secrets.WORKERS_API_URL }}
+          WORKERS_API_KEY: ${{ secrets.WORKERS_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
+        run: cd scheduler && npm start
