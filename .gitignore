@@ -1,0 +1,5 @@
+node_modules
+dist
+.wrangler
+api/.dev.vars
+web/.env.local

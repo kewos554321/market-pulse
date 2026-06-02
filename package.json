@@ -1,0 +1,5 @@
+{
+  "name": "market-pulse",
+  "private": true,
+  "workspaces": ["api", "scheduler", "web"]
+}
