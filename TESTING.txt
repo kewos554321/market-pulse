@@ -1,0 +1,101 @@
+Market Pulse — 本地測試步驟
+==============================
+
+前置需求
+--------
+- Node.js 20+
+- Cloudflare 帳號（免費即可）
+- Resend 帳號（免費，取得 API key）
+
+
+Step 1：Cloudflare 登入 + 建立 D1 資料庫
+------------------------------------------
+cd api
+npx wrangler login        # 會開瀏覽器登入
+npx wrangler d1 create market-pulse
+
+輸出中找到 database_id，填入 api/wrangler.toml：
+  database_id = "貼上你的-database-id"
+
+
+Step 2：套用 migration + 啟動 API
+-----------------------------------
+cd api
+npm run migrate:local     # 建立本地 SQLite DB
+npm run dev               # API 啟動在 http://localhost:8787
+
+
+Step 3：啟動前端（另開一個 terminal）
+---------------------------------------
+cd web
+
+建立 .env.local 檔案，內容如下：
+  VITE_API_URL=http://localhost:8787
+  VITE_API_KEY=dev-secret-key-change-in-prod
+
+npm run dev               # UI 啟動在 http://localhost:5173
+
+瀏覽器打開 http://localhost:5173，確認以下功能：
+  - 首頁：顯示「目前沒有觸發訊號」
+  - 追蹤清單：新增一支股票（例如代號 2330、名稱 台積電）
+  - 設定算法：點「設定算法」，新增條件 RSI < 100（確保會觸發）
+  - 設定頁：填入你的 Email，儲存
+
+
+Step 4：手動執行 Scheduler（本地測試）
+----------------------------------------
+確保 Step 2 的 API 仍在執行中，然後：
+
+cd scheduler
+WORKERS_API_URL=http://localhost:8787 \
+WORKERS_API_KEY=dev-secret-key-change-in-prod \
+RESEND_API_KEY=你的_resend_api_key \
+npm start
+
+預期輸出：
+  Processing 1 items...
+  ✅ 2330 台積電: triggered (close=xxx)
+  ✉️  Sent email to your@email.com with 1 signals
+
+回到 http://localhost:5173/signals 確認訊號出現。
+
+
+Step 5：部署到 Cloudflare（上線）
+-----------------------------------
+# 套用 migration 到 production
+cd api
+npm run migrate:prod
+
+# 設定 production API Key（互動式輸入）
+npx wrangler secret put API_KEY
+
+# 部署 API
+npm run deploy
+# 輸出：https://market-pulse-api.<subdomain>.workers.dev
+
+# 部署前端
+cd ../web
+npx wrangler pages deploy dist --project-name market-pulse-web
+# 或透過 Cloudflare Dashboard 連接 GitHub repo（建議）
+
+
+Step 6：設定 GitHub Actions（自動每日排程）
+--------------------------------------------
+推送 code 到 GitHub repo 後，到：
+  Settings → Secrets and variables → Actions
+
+新增以下 Secrets：
+  WORKERS_API_URL  = https://market-pulse-api.<subdomain>.workers.dev
+  WORKERS_API_KEY  = 與 wrangler secret put 設定的相同值
+  RESEND_API_KEY   = 你的 Resend API key
+  FINMIND_TOKEN    = （選填，留空也可）
+
+手動觸發測試：
+  GitHub repo → Actions → Market Pulse Scheduler → Run workflow
+
+
+排程說明
+--------
+- 每週一到週五 14:35 台北時間自動執行
+- 在 Settings 頁面可切換「啟用/停用每日排程」
+- .github/workflows/scheduler.yml 可調整 cron 時間
