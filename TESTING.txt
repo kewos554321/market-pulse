@@ -44,12 +44,17 @@ npm run dev               # UI 啟動在 http://localhost:5173
 
 Step 4：手動執行 Scheduler（本地測試）
 ----------------------------------------
+環境變數已持久化在 scheduler/.env（已加入 .gitignore，不會被 commit）。
+
+首次使用前，編輯 scheduler/.env 填入實際的 Resend API key：
+  WORKERS_API_URL=http://localhost:8787
+  WORKERS_API_KEY=dev-secret-key-change-in-prod
+  RESEND_API_KEY=填入你的_resend_api_key
+  FINMIND_TOKEN=
+
 確保 Step 2 的 API 仍在執行中，然後：
 
 cd scheduler
-WORKERS_API_URL=http://localhost:8787 \
-WORKERS_API_KEY=dev-secret-key-change-in-prod \
-RESEND_API_KEY=你的_resend_api_key \
 npm start
 
 預期輸出：
