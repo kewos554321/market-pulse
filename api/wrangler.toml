@@ -1,0 +1,9 @@
+name = "market-pulse-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "market-pulse"
+database_id = "REPLACE_WITH_DATABASE_ID"

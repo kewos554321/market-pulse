@@ -1,0 +1,47 @@
+export interface Env {
+  DB: D1Database;
+  API_KEY: string;
+}
+
+export interface WatchlistRow {
+  id: string;
+  symbol: string;
+  name: string;
+  enabled: number;
+  created_at: string;
+}
+
+export interface AlgorithmRow {
+  id: string;
+  watchlist_id: string;
+  conditions: string;
+  updated_at: string;
+}
+
+export interface SignalRow {
+  id: string;
+  watchlist_id: string;
+  symbol: string;
+  triggered_at: string;
+  conditions_snapshot: string;
+  close_price: number;
+  notified: number;
+}
+
+export type ConditionOp = '<' | '>' | '<=' | '>=' | '=';
+export type IndicatorName = 'RSI' | 'MA' | 'CLOSE' | 'VOLUME' | 'KD_CROSS' | 'MACD_CROSS';
+
+export interface ConditionLeaf {
+  indicator: IndicatorName;
+  period?: number;
+  op?: ConditionOp;
+  value?: number;
+  ref?: string;
+  multiplier?: number;
+  direction?: 'golden' | 'dead';
+}
+
+export interface ConditionTree {
+  operator: 'AND' | 'OR';
+  conditions: (ConditionLeaf | ConditionTree)[];
+}
