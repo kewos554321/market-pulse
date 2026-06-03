@@ -23,7 +23,9 @@ export function AlgorithmEditor() {
     api.getAlgorithm(id)
       .then((algo) => {
         setConditions(algo.conditions);
-        setMode(parsePresets(algo.conditions) !== null ? 'preset' : 'advanced');
+        const isEmpty = algo.conditions.conditions.length === 0;
+        const presets = parsePresets(algo.conditions);
+        setMode(isEmpty || presets !== null ? 'preset' : 'advanced');
       })
       .catch(() => {
         setConditions(emptyTree);
