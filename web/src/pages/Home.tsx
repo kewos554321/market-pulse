@@ -11,32 +11,36 @@ export function Home() {
 
   return (
     <div>
-      <h1>Market Pulse</h1>
-      <h2>近期訊號</h2>
-      {signals.length === 0 ? (
-        <p style={{ color: '#888' }}>目前沒有觸發訊號。</p>
-      ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              {['標的代號', '收盤價', '觸發時間'].map((h) => (
-                <th key={h} style={{ textAlign: 'left', padding: '0.5rem', borderBottom: '1px solid #ccc' }}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
+      <div style={{ marginBottom: '20px' }}>
+        <h1 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>首頁</h1>
+        <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>最新觸發訊號概覽</p>
+      </div>
+      <div style={{
+        background: '#fff', borderRadius: '12px', padding: '24px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.06)', border: '1px solid #e2e8f0',
+      }}>
+        <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '16px' }}>近期訊號</div>
+        {signals.length === 0 ? (
+          <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: '14px', padding: '24px 0' }}>
+            目前沒有觸發訊號。
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {signals.map((s) => (
-              <tr key={s.id}>
-                <td style={{ padding: '0.5rem' }}>{s.symbol}</td>
-                <td style={{ padding: '0.5rem' }}>{s.close_price}</td>
-                <td style={{ padding: '0.5rem' }}>{s.triggered_at.split('T')[0]}</td>
-              </tr>
+              <div key={s.id} style={{
+                display: 'flex', alignItems: 'center', gap: '12px',
+                padding: '12px', background: '#f8fafc', borderRadius: '8px',
+              }}>
+                <span style={{ fontWeight: 700, color: '#6366f1', fontSize: '14px', minWidth: '44px' }}>{s.symbol}</span>
+                <span style={{ color: '#475569', fontSize: '13px' }}>收盤 {s.close_price}</span>
+                <span style={{ marginLeft: 'auto', color: '#94a3b8', fontSize: '12px' }}>
+                  {s.triggered_at.split('T')[0]}
+                </span>
+              </div>
             ))}
-          </tbody>
-        </table>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
