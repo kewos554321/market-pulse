@@ -29,7 +29,7 @@ export interface SignalRow {
 }
 
 export type ConditionOp = '<' | '>' | '<=' | '>=' | '=';
-export type IndicatorName = 'RSI' | 'MA' | 'CLOSE' | 'VOLUME' | 'KD_CROSS' | 'MACD_CROSS';
+export type IndicatorName = 'RSI' | 'MA' | 'CLOSE' | 'VOLUME' | 'KD_CROSS' | 'MACD_CROSS' | 'MA_CROSS';
 
 export interface ConditionLeaf {
   indicator: IndicatorName;
@@ -44,4 +44,20 @@ export interface ConditionLeaf {
 export interface ConditionTree {
   operator: 'AND' | 'OR';
   conditions: (ConditionLeaf | ConditionTree)[];
+}
+
+export interface RecommendationStockRow {
+  symbol: string;
+  name: string;
+  is_default: number;
+}
+
+export interface RecommendationRow {
+  id: number;
+  date: string;
+  symbol: string;
+  name: string;
+  close_price: number;
+  strategies: string;
+  created_at: string;
 }
