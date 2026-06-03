@@ -9,13 +9,9 @@ export interface OHLCVData {
   volume: number;
 }
 
-interface TWSERow {
-  Date: string;          // "115/06/01" (ROC calendar)
-  OpeningPrice: string;
-  HighestPrice: string;
-  LowestPrice: string;
-  ClosingPrice: string;
-  TradeVolume: string;
+interface TWSEResponse {
+  stat: string;
+  data: string[][];
 }
 
 function rocToIso(rocDate: string): string {
@@ -29,20 +25,24 @@ function parseNumber(s: string): number {
 
 export async function fetchMonthlyData(symbol: string, year: number, month: number): Promise<OHLCVData[]> {
   const dateStr = `${year}${String(month).padStart(2, '0')}01`;
-  const url = `https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY?stockNo=${symbol}&date=${dateStr}`;
+  const url = `https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date=${dateStr}&stockNo=${symbol}`;
 
-  const { data } = await axios.get<TWSERow[]>(url, { timeout: 10000 });
-  if (!Array.isArray(data)) return [];
+  const { data } = await axios.get<TWSEResponse>(url, {
+    timeout: 10000,
+    headers: { 'User-Agent': 'Mozilla/5.0' },
+  });
+  if (data.stat !== 'OK' || !Array.isArray(data.data)) return [];
 
-  return data
-    .filter((row) => row.ClosingPrice && row.ClosingPrice !== '--')
+  // row: [date, volume, amount, open, high, low, close, change, trades]
+  return data.data
+    .filter((row) => row[6] && row[6] !== '--')
     .map((row) => ({
-      date: rocToIso(row.Date),
-      open: parseNumber(row.OpeningPrice),
-      high: parseNumber(row.HighestPrice),
-      low: parseNumber(row.LowestPrice),
-      close: parseNumber(row.ClosingPrice),
-      volume: parseNumber(row.TradeVolume),
+      date: rocToIso(row[0]),
+      open: parseNumber(row[3]),
+      high: parseNumber(row[4]),
+      low: parseNumber(row[5]),
+      close: parseNumber(row[6]),
+      volume: parseNumber(row[1]),
     }));
 }
 
@@ -50,7 +50,7 @@ export async function fetchNinetyDays(symbol: string): Promise<OHLCVData[]> {
   const now = new Date();
   const months: { year: number; month: number }[] = [];
 
-  for (let i = 2; i >= 0; i--) {
+  for (let i = 3; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     months.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
   }
