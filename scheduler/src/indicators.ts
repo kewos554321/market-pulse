@@ -3,6 +3,7 @@ import {
   SMA,
   MACD,
   Stochastic,
+  BollingerBands,
 } from 'technicalindicators';
 import type { OHLCVData } from './twse.js';
 
@@ -16,6 +17,8 @@ export interface IndicatorValues {
   stochastic: Array<{ k: number; d: number }>;
   closes: number[];
   volumes: number[];
+  bollingerUpper: number[];
+  bollingerLower: number[];
 }
 
 export function calculateIndicators(data: OHLCVData[]): IndicatorValues {
@@ -55,5 +58,7 @@ export function calculateIndicators(data: OHLCVData[]): IndicatorValues {
     stochastic: rawStoch.map((s) => ({ k: s.k, d: s.d })),
     closes,
     volumes,
+    bollingerUpper: BollingerBands.calculate({ period: 20, stdDev: 2, values: closes }).map((b) => b.upper),
+    bollingerLower: BollingerBands.calculate({ period: 20, stdDev: 2, values: closes }).map((b) => b.lower),
   };
 }

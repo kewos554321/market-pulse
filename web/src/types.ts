@@ -26,7 +26,7 @@ export interface Signal {
 export type ConditionOp = '<' | '>' | '<=' | '>=' | '=';
 
 export interface ConditionLeaf {
-  indicator: 'RSI' | 'MA' | 'CLOSE' | 'VOLUME' | 'KD_CROSS' | 'MACD_CROSS' | 'MA_CROSS';
+  indicator: 'RSI' | 'MA' | 'CLOSE' | 'VOLUME' | 'KD_CROSS' | 'MACD_CROSS' | 'MA_CROSS' | 'BB_LOWER' | 'BB_UPPER';
   period?: number;
   op?: ConditionOp;
   value?: number;

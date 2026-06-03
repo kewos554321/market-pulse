@@ -108,6 +108,28 @@ export const SIGNALS: SignalDef[] = [
       return null;
     },
   },
+  {
+    id: 'bb-lower',
+    name: '跌破布林下軌',
+    description: '收盤價跌至布林通道下軌（20日，2σ），可能超賣反彈',
+    params: [],
+    toCondition: () => ({ indicator: 'BB_LOWER' }),
+    matchCondition: (leaf) => {
+      if (leaf.indicator === 'BB_LOWER') return {};
+      return null;
+    },
+  },
+  {
+    id: 'bb-upper',
+    name: '突破布林上軌',
+    description: '收盤價突破布林通道上軌（20日，2σ），強勢突破訊號',
+    params: [],
+    toCondition: () => ({ indicator: 'BB_UPPER' }),
+    matchCondition: (leaf) => {
+      if (leaf.indicator === 'BB_UPPER') return {};
+      return null;
+    },
+  },
 ];
 
 export interface SignalSelection {

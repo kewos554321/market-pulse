@@ -85,6 +85,18 @@ function evaluateLeaf(c: ConditionLeaf, indicators: IndicatorValues): boolean {
       return prev.k >= prev.d && curr.k < curr.d;
     }
 
+    case 'BB_LOWER': {
+      const close = lastOf(indicators.closes);
+      const lower = lastOf(indicators.bollingerLower);
+      return close <= lower;
+    }
+
+    case 'BB_UPPER': {
+      const close = lastOf(indicators.closes);
+      const upper = lastOf(indicators.bollingerUpper);
+      return close >= upper;
+    }
+
     case 'MA_CROSS': {
       const ma5 = indicators.ma5;
       const ma20 = indicators.ma20;
