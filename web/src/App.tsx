@@ -5,30 +5,53 @@ import { AlgorithmEditor } from './pages/AlgorithmEditor';
 import { Signals } from './pages/Signals';
 import { Settings } from './pages/Settings';
 
-const navLinkStyle = ({ isActive }: { isActive: boolean }): React.CSSProperties => ({
-  fontWeight: isActive ? 'bold' : 'normal',
-  textDecoration: 'none',
-  color: isActive ? '#0070f3' : '#333',
-});
-
 export function App() {
   return (
     <BrowserRouter>
-      <nav style={{ display: 'flex', gap: '1.5rem', padding: '1rem 1.5rem', borderBottom: '1px solid #eee', marginBottom: '1.5rem' }}>
-        <NavLink to="/" style={navLinkStyle}>首頁</NavLink>
-        <NavLink to="/watchlist" style={navLinkStyle}>追蹤清單</NavLink>
-        <NavLink to="/signals" style={navLinkStyle}>訊號歷史</NavLink>
-        <NavLink to="/settings" style={navLinkStyle}>設定</NavLink>
-      </nav>
-      <main style={{ padding: '0 1.5rem', maxWidth: '900px' }}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/watchlist" element={<Watchlist />} />
-          <Route path="/watchlist/:id/algorithm" element={<AlgorithmEditor />} />
-          <Route path="/signals" element={<Signals />} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
-      </main>
+      <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+        <nav style={{
+          display: 'flex', alignItems: 'center', background: '#fff',
+          borderBottom: '1px solid #e2e8f0', padding: '0 24px',
+          position: 'sticky', top: 0, zIndex: 100,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+        }}>
+          <span style={{ fontWeight: 800, color: '#6366f1', fontSize: '15px', marginRight: '32px', padding: '14px 0' }}>
+            Market Pulse
+          </span>
+          {[
+            { to: '/', label: '首頁', exact: true },
+            { to: '/watchlist', label: '追蹤清單', exact: false },
+            { to: '/signals', label: '訊號歷史', exact: false },
+            { to: '/settings', label: '設定', exact: false },
+          ].map(({ to, label, exact }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={exact}
+              style={({ isActive }) => ({
+                padding: '14px 16px',
+                fontSize: '13px',
+                textDecoration: 'none',
+                color: isActive ? '#6366f1' : '#94a3b8',
+                fontWeight: isActive ? 600 : 400,
+                borderBottom: isActive ? '2px solid #6366f1' : '2px solid transparent',
+                transition: 'color 0.15s',
+              })}
+            >
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+        <main style={{ maxWidth: '900px', margin: '0 auto', padding: '24px' }}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/watchlist" element={<Watchlist />} />
+            <Route path="/watchlist/:id/algorithm" element={<AlgorithmEditor />} />
+            <Route path="/signals" element={<Signals />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </main>
+      </div>
     </BrowserRouter>
   );
 }
