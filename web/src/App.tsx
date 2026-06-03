@@ -4,6 +4,7 @@ import { Watchlist } from './pages/Watchlist';
 import { AlgorithmEditor } from './pages/AlgorithmEditor';
 import { Signals } from './pages/Signals';
 import { Settings } from './pages/Settings';
+import { Recommendations } from './pages/Recommendations';
 
 export function App() {
   return (
@@ -21,6 +22,7 @@ export function App() {
           {[
             { to: '/', label: '首頁', exact: true },
             { to: '/watchlist', label: '追蹤清單', exact: false },
+            { to: '/recommendations', label: '推薦', exact: false },
             { to: '/signals', label: '訊號歷史', exact: false },
             { to: '/settings', label: '設定', exact: false },
           ].map(({ to, label, exact }) => (
@@ -47,6 +49,7 @@ export function App() {
             <Route path="/" element={<Home />} />
             <Route path="/watchlist" element={<Watchlist />} />
             <Route path="/watchlist/:id/algorithm" element={<AlgorithmEditor />} />
+            <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/signals" element={<Signals />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
