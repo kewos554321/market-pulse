@@ -85,6 +85,20 @@ function evaluateLeaf(c: ConditionLeaf, indicators: IndicatorValues): boolean {
       return prev.k >= prev.d && curr.k < curr.d;
     }
 
+    case 'MA_CROSS': {
+      const ma5 = indicators.ma5;
+      const ma20 = indicators.ma20;
+      if (ma5.length < 2 || ma20.length < 2) return false;
+      const prevMa5 = ma5[ma5.length - 2];
+      const currMa5 = ma5[ma5.length - 1];
+      const prevMa20 = ma20[ma20.length - 2];
+      const currMa20 = ma20[ma20.length - 1];
+      if (c.direction === 'golden') {
+        return prevMa5 <= prevMa20 && currMa5 > currMa20;
+      }
+      return prevMa5 >= prevMa20 && currMa5 < currMa20;
+    }
+
     default:
       return false;
   }

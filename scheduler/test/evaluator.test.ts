@@ -98,6 +98,43 @@ describe('evaluateConditionTree - leaf conditions', () => {
       makeIndicators({ stochastic: [{ k: 35, d: 30 }, { k: 40, d: 38 }] })
     )).toBe(false);
   });
+
+  it('MA_CROSS golden is true when MA5 just crossed above MA20', () => {
+    expect(evaluateConditionTree(
+      { indicator: 'MA_CROSS', direction: 'golden' },
+      makeIndicators({
+        ma5:  [94, 97],
+        ma20: [95, 96],
+      })
+    )).toBe(true);
+  });
+
+  it('MA_CROSS golden is false when MA5 was already above MA20', () => {
+    expect(evaluateConditionTree(
+      { indicator: 'MA_CROSS', direction: 'golden' },
+      makeIndicators({
+        ma5:  [98, 99],
+        ma20: [95, 96],
+      })
+    )).toBe(false);
+  });
+
+  it('MA_CROSS dead is true when MA5 just crossed below MA20', () => {
+    expect(evaluateConditionTree(
+      { indicator: 'MA_CROSS', direction: 'dead' },
+      makeIndicators({
+        ma5:  [97, 94],
+        ma20: [95, 96],
+      })
+    )).toBe(true);
+  });
+
+  it('MA_CROSS golden is false when arrays have fewer than 2 points', () => {
+    expect(evaluateConditionTree(
+      { indicator: 'MA_CROSS', direction: 'golden' },
+      makeIndicators({ ma5: [102], ma20: [97] })
+    )).toBe(false);
+  });
 });
 
 describe('evaluateConditionTree - AND/OR trees', () => {

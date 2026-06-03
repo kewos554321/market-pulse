@@ -1,7 +1,7 @@
 export type ConditionOp = '<' | '>' | '<=' | '>=' | '=';
 
 export interface ConditionLeaf {
-  indicator: 'RSI' | 'MA' | 'CLOSE' | 'VOLUME' | 'KD_CROSS' | 'MACD_CROSS';
+  indicator: 'RSI' | 'MA' | 'CLOSE' | 'VOLUME' | 'KD_CROSS' | 'MACD_CROSS' | 'MA_CROSS';
   period?: number;
   op?: ConditionOp;
   value?: number;
