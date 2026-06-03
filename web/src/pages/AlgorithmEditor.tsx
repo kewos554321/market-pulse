@@ -14,6 +14,7 @@ export function AlgorithmEditor() {
   const [stock, setStock] = useState<WatchlistItem | null>(null);
   const [conditions, setConditions] = useState<ConditionTree>(emptyTree);
   const [mode, setMode] = useState<'preset' | 'advanced'>('preset');
+  const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -27,7 +28,8 @@ export function AlgorithmEditor() {
       .catch(() => {
         setConditions(emptyTree);
         setMode('preset');
-      });
+      })
+      .finally(() => setLoading(false));
   }, [id]);
 
   async function handleSave() {
@@ -65,7 +67,11 @@ export function AlgorithmEditor() {
         boxShadow: '0 1px 3px rgba(0,0,0,0.06)', border: '1px solid #e2e8f0',
         marginBottom: '16px',
       }}>
-        {mode === 'preset' ? (
+        {loading ? (
+          <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+            載入中...
+          </div>
+        ) : mode === 'preset' ? (
           <PresetSignalPicker value={conditions} onChange={setConditions} />
         ) : (
           <ConditionBuilder conditions={conditions} onChange={setConditions} />
