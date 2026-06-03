@@ -4,6 +4,7 @@ import { fetchHistoricalData } from './finmind.js';
 import { calculateIndicators } from './indicators.js';
 import { evaluateConditionTree } from './evaluator.js';
 import { sendSignalEmail } from './notify.js';
+import { BUILT_IN_STRATEGIES } from './strategies.js';
 import type { ConditionTree } from './types.js';
 
 const API_URL = process.env.WORKERS_API_URL!;
@@ -27,7 +28,59 @@ interface AlgorithmResponse {
   conditions: ConditionTree;
 }
 
+async function fetchOhlcv(symbol: string) {
+  let ohlcv = await fetchNinetyDays(symbol);
+  if (ohlcv.length < 65) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 4);
+    const startDate = d.toISOString().split('T')[0];
+    ohlcv = await fetchHistoricalData(symbol, startDate, FINMIND_TOKEN || undefined);
+  }
+  return ohlcv;
+}
+
+async function runRecommendationScan(today: string) {
+  const { data: stockPool } = await api.get<{ symbol: string; name: string }[]>(
+    '/recommendation-stocks'
+  );
+  console.log(`Scanning ${stockPool.length} recommendation stocks...`);
+
+  const hits: {
+    symbol: string;
+    name: string;
+    close_price: number;
+    strategies: string[];
+  }[] = [];
+
+  for (const stock of stockPool) {
+    try {
+      const ohlcv = await fetchOhlcv(stock.symbol);
+      if (ohlcv.length < 30) {
+        console.log(`${stock.symbol}: insufficient data, skipping`);
+        continue;
+      }
+      const indicators = calculateIndicators(ohlcv);
+      const triggered = BUILT_IN_STRATEGIES
+        .filter((s) => evaluateConditionTree(s.conditions, indicators))
+        .map((s) => s.name);
+
+      if (triggered.length > 0) {
+        const closePrice = ohlcv[ohlcv.length - 1].close;
+        console.log(`✅ ${stock.symbol} ${stock.name}: ${triggered.join(', ')}`);
+        hits.push({ symbol: stock.symbol, name: stock.name, close_price: closePrice, strategies: triggered });
+      }
+    } catch (err) {
+      console.error(`Recommendation scan error for ${stock.symbol}:`, err);
+    }
+  }
+
+  await api.post('/recommendations', { date: today, items: hits });
+  console.log(`📊 Wrote ${hits.length} recommendations for ${today}`);
+}
+
 async function run() {
+  const today = new Date().toISOString().split('T')[0];
+
   const { data: settings } = await api.get<Record<string, string>>('/settings');
   if (settings.schedule_enabled !== '1') {
     console.log('Scheduling disabled via settings. Exiting.');
@@ -60,15 +113,7 @@ async function run() {
         continue;
       }
 
-      let ohlcv = await fetchNinetyDays(item.symbol);
-
-      if (ohlcv.length < 65) {
-        console.log(`${item.symbol}: insufficient data (${ohlcv.length}), trying FinMind...`);
-        const d = new Date();
-        d.setMonth(d.getMonth() - 4);
-        const startDate = d.toISOString().split('T')[0];
-        ohlcv = await fetchHistoricalData(item.symbol, startDate, FINMIND_TOKEN || undefined);
-      }
+      const ohlcv = await fetchOhlcv(item.symbol);
 
       if (ohlcv.length < 30) {
         console.log(`${item.symbol}: still insufficient data (${ohlcv.length}), skipping`);
@@ -96,29 +141,28 @@ async function run() {
     }
   }
 
-  if (!triggeredSignals.length) {
+  if (triggeredSignals.length > 0) {
+    await api.post('/signals', {
+      signals: triggeredSignals.map(({ name: _n, ...s }) => s),
+    });
+
+    await sendSignalEmail(
+      RESEND_API_KEY,
+      notifyEmail,
+      today,
+      triggeredSignals.map((s) => ({
+        symbol: s.symbol,
+        name: s.name,
+        closePrice: s.close_price,
+        triggeredConditions: ['條件符合'],
+      }))
+    );
+    console.log(`✉️  Sent email to ${notifyEmail} with ${triggeredSignals.length} signals`);
+  } else {
     console.log('No signals today.');
-    return;
   }
 
-  await api.post('/signals', {
-    signals: triggeredSignals.map(({ name: _n, ...s }) => s),
-  });
-
-  const today = new Date().toISOString().split('T')[0];
-  await sendSignalEmail(
-    RESEND_API_KEY,
-    notifyEmail,
-    today,
-    triggeredSignals.map((s) => ({
-      symbol: s.symbol,
-      name: s.name,
-      closePrice: s.close_price,
-      triggeredConditions: ['條件符合'],
-    }))
-  );
-
-  console.log(`✉️  Sent email to ${notifyEmail} with ${triggeredSignals.length} signals`);
+  await runRecommendationScan(today);
 }
 
 run().catch((err) => {
