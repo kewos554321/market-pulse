@@ -7,6 +7,7 @@ import { algorithmRoutes } from './routes/algorithms';
 import { signalRoutes } from './routes/signals';
 import { settingsRoutes } from './routes/settings';
 import { recommendationStocksRoutes } from './routes/recommendation-stocks';
+import { recommendationsRoutes } from './routes/recommendations';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -18,5 +19,6 @@ app.route('/watchlist', algorithmRoutes);
 app.route('/signals', signalRoutes);
 app.route('/settings', settingsRoutes);
 app.route('/recommendation-stocks', recommendationStocksRoutes);
+app.route('/recommendations', recommendationsRoutes);
 
 export default app;
