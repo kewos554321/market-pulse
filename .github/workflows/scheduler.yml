@@ -25,4 +25,8 @@ jobs:
           WORKERS_API_KEY: ${{ secrets.WORKERS_API_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
-        run: cd scheduler && npm start
+        run: |
+          cd scheduler
+          printf "WORKERS_API_URL=%s\nWORKERS_API_KEY=%s\nRESEND_API_KEY=%s\nFINMIND_TOKEN=%s\n" \
+            "$WORKERS_API_URL" "$WORKERS_API_KEY" "$RESEND_API_KEY" "$FINMIND_TOKEN" > .env
+          npm start
