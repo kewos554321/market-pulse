@@ -4,8 +4,8 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "migrate:local": "wrangler d1 migrations apply stock-tracker --local",
-    "migrate:prod": "wrangler d1 migrations apply stock-tracker"
+    "migrate:local": "wrangler d1 migrations apply market-pulse --local",
+    "migrate:prod": "wrangler d1 migrations apply market-pulse --remote"
   },
   "dependencies": {
     "hono": "^4.4.0"
@@ -13,6 +13,6 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240725.0",
     "typescript": "^5.5.0",
-    "wrangler": "^3.65.0"
+    "wrangler": "^4.97.0"
   }
 }

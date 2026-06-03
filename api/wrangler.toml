@@ -6,4 +6,4 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "market-pulse"
-database_id = "REPLACE_WITH_DATABASE_ID"
+database_id = "4a23d819-0e05-4fb5-a01c-e93a09f6da3a"
