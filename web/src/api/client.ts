@@ -37,4 +37,13 @@ export const api = {
   getSettings: () => request<Record<string, string>>('/settings'),
   saveSettings: (updates: Record<string, string>) =>
     request<{ success: boolean }>('/settings', { method: 'PUT', body: JSON.stringify(updates) }),
+  getRecommendations: () => request<import('../types').RecommendationsResponse>('/recommendations'),
+  getRecommendationStocks: () => request<import('../types').RecommendationStock[]>('/recommendation-stocks'),
+  addRecommendationStock: (symbol: string, name: string) =>
+    request<import('../types').RecommendationStock>('/recommendation-stocks', {
+      method: 'POST',
+      body: JSON.stringify({ symbol, name }),
+    }),
+  deleteRecommendationStock: (symbol: string) =>
+    request<{ success: boolean }>(`/recommendation-stocks/${symbol}`, { method: 'DELETE' }),
 };
