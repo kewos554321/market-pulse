@@ -28,16 +28,60 @@ export function AlgorithmEditor() {
 
   return (
     <div>
-      <button onClick={() => navigate('/watchlist')} style={{ marginBottom: '1rem' }}>← 返回清單</button>
-      <h1>算法設定{stock && ` — ${stock.symbol} ${stock.name}`}</h1>
-      <ConditionBuilder conditions={conditions} onChange={setConditions} />
-      <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <button onClick={handleSave}>儲存算法</button>
-        {saved && <span style={{ color: 'green' }}>已儲存 ✓</span>}
+      <button
+        onClick={() => navigate('/watchlist')}
+        style={{
+          background: 'none', border: 'none', color: '#6366f1', fontSize: '13px',
+          cursor: 'pointer', padding: '0', marginBottom: '16px', fontWeight: 500,
+        }}
+      >
+        ← 返回清單
+      </button>
+
+      <div style={{ marginBottom: '20px' }}>
+        <h1 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>
+          算法設定
+        </h1>
+        {stock && (
+          <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+            {stock.symbol} {stock.name}
+          </p>
+        )}
       </div>
-      <details style={{ marginTop: '1.5rem' }}>
-        <summary style={{ cursor: 'pointer', color: '#666' }}>查看 JSON</summary>
-        <pre style={{ background: '#f5f5f5', padding: '1rem', fontSize: '12px', overflow: 'auto' }}>
+
+      <div style={{
+        background: '#fff', borderRadius: '12px', padding: '24px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.06)', border: '1px solid #e2e8f0',
+        marginBottom: '16px',
+      }}>
+        <ConditionBuilder conditions={conditions} onChange={setConditions} />
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+        <button
+          onClick={handleSave}
+          style={{
+            background: '#6366f1', color: '#fff', border: 'none',
+            borderRadius: '8px', padding: '10px 24px',
+            fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+          }}
+        >
+          儲存算法
+        </button>
+        {saved && (
+          <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 500 }}>已儲存 ✓</span>
+        )}
+      </div>
+
+      <details>
+        <summary style={{ cursor: 'pointer', color: '#94a3b8', fontSize: '12px', userSelect: 'none' }}>
+          查看 JSON
+        </summary>
+        <pre style={{
+          background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px',
+          padding: '16px', fontSize: '12px', overflow: 'auto', marginTop: '8px',
+          color: '#374151',
+        }}>
           {JSON.stringify(conditions, null, 2)}
         </pre>
       </details>
