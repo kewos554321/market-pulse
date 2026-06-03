@@ -109,6 +109,39 @@ export const SIGNALS: SignalDef[] = [
     },
   },
   {
+    id: 'macd-dead',
+    name: 'MACD 死亡交叉',
+    description: 'MACD 線穿越訊號線向下，趨勢轉弱訊號',
+    params: [],
+    toCondition: () => ({ indicator: 'MACD_CROSS', direction: 'dead' }),
+    matchCondition: (leaf) => {
+      if (leaf.indicator === 'MACD_CROSS' && leaf.direction === 'dead') return {};
+      return null;
+    },
+  },
+  {
+    id: 'ma-cross-golden',
+    name: 'MA 黃金交叉',
+    description: 'MA5 由下往上穿越 MA20，中期買入訊號',
+    params: [],
+    toCondition: () => ({ indicator: 'MA_CROSS', direction: 'golden' }),
+    matchCondition: (leaf) => {
+      if (leaf.indicator === 'MA_CROSS' && leaf.direction === 'golden') return {};
+      return null;
+    },
+  },
+  {
+    id: 'ma-cross-dead',
+    name: 'MA 死亡交叉',
+    description: 'MA5 由上往下穿越 MA20，中期賣出訊號',
+    params: [],
+    toCondition: () => ({ indicator: 'MA_CROSS', direction: 'dead' }),
+    matchCondition: (leaf) => {
+      if (leaf.indicator === 'MA_CROSS' && leaf.direction === 'dead') return {};
+      return null;
+    },
+  },
+  {
     id: 'bb-lower',
     name: '跌破布林下軌',
     description: '收盤價跌至布林通道下軌（20日，2σ），可能超賣反彈',
