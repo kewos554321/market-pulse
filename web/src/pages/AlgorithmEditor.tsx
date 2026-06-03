@@ -6,6 +6,25 @@ import type { ConditionTree, WatchlistItem } from '../types';
 
 const emptyTree: ConditionTree = { operator: 'AND', conditions: [] };
 
+const STRATEGY_TEMPLATES: Array<{ name: string; conditions: ConditionTree }> = [
+  {
+    name: '黃金交叉',
+    conditions: { operator: 'AND', conditions: [{ indicator: 'MA_CROSS', direction: 'golden' }] },
+  },
+  {
+    name: 'RSI超賣反彈',
+    conditions: { operator: 'AND', conditions: [{ indicator: 'RSI', op: '<', value: 30 }] },
+  },
+  {
+    name: 'MACD翻多',
+    conditions: { operator: 'AND', conditions: [{ indicator: 'MACD_CROSS', direction: 'golden' }] },
+  },
+  {
+    name: 'KD黃金交叉',
+    conditions: { operator: 'AND', conditions: [{ indicator: 'KD_CROSS', direction: 'golden' }] },
+  },
+];
+
 export function AlgorithmEditor() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -18,6 +37,13 @@ export function AlgorithmEditor() {
     api.getWatchlist().then((list) => setStock(list.find((s) => s.id === id) ?? null));
     api.getAlgorithm(id).then((algo) => setConditions(algo.conditions)).catch(() => setConditions(emptyTree));
   }, [id]);
+
+  function handleApplyTemplate(templateName: string) {
+    const tpl = STRATEGY_TEMPLATES.find((t) => t.name === templateName);
+    if (!tpl) return;
+    if (!window.confirm(`套用「${tpl.name}」模板將覆蓋現有條件，確定嗎？`)) return;
+    setConditions(tpl.conditions);
+  }
 
   async function handleSave() {
     if (!id) return;
@@ -47,6 +73,26 @@ export function AlgorithmEditor() {
             {stock.symbol} {stock.name}
           </p>
         )}
+      </div>
+
+      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>套用模板：</label>
+        <select
+          defaultValue=""
+          onChange={(e) => {
+            if (e.target.value) handleApplyTemplate(e.target.value);
+            e.target.value = '';
+          }}
+          style={{
+            border: '1.5px solid #e2e8f0', borderRadius: '8px', padding: '7px 12px',
+            fontSize: '13px', color: '#374151', outline: 'none', background: '#fff', cursor: 'pointer',
+          }}
+        >
+          <option value="" disabled>選擇策略模板...</option>
+          {STRATEGY_TEMPLATES.map((t) => (
+            <option key={t.name} value={t.name}>{t.name}</option>
+          ))}
+        </select>
       </div>
 
       <div style={{

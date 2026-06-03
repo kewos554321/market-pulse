@@ -7,7 +7,7 @@ interface Props {
   onChange: (tree: ConditionTree) => void;
 }
 
-const INDICATORS = ['RSI', 'CLOSE', 'MA', 'VOLUME', 'KD_CROSS', 'MACD_CROSS'] as const;
+const INDICATORS = ['RSI', 'CLOSE', 'MA', 'VOLUME', 'KD_CROSS', 'MACD_CROSS', 'MA_CROSS'] as const;
 const OPS = ['<', '>', '<=', '>=', '='] as const;
 
 const selectStyle: React.CSSProperties = {
@@ -35,7 +35,7 @@ function LeafRow({
   onChange: (l: ConditionLeaf) => void;
   onDelete: () => void;
 }) {
-  const isCross = ['KD_CROSS', 'MACD_CROSS'].includes(leaf.indicator);
+  const isCross = ['KD_CROSS', 'MACD_CROSS', 'MA_CROSS'].includes(leaf.indicator);
 
   return (
     <div style={{
