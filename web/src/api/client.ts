@@ -61,4 +61,16 @@ export const api = {
     }),
   deleteEmailRecipient: (id: string) =>
     request<{ success: boolean }>(`/email-recipients/${id}`, { method: 'DELETE' }),
+  getGroups: () => request<import('../types').Group[]>('/groups'),
+  createGroup: (name: string) =>
+    request<import('../types').Group>('/groups', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    }),
+  deleteGroup: (id: string) => request<{ success: boolean }>(`/groups/${id}`, { method: 'DELETE' }),
+  setWatchlistGroups: (watchlistId: string, groupIds: string[]) =>
+    request<{ success: boolean }>(`/watchlist/${watchlistId}/groups`, {
+      method: 'PUT',
+      body: JSON.stringify({ groupIds }),
+    }),
 };

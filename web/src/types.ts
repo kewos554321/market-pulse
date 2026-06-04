@@ -1,9 +1,16 @@
+export interface Group {
+  id: string;
+  name: string;
+  count?: number;
+}
+
 export interface WatchlistItem {
   id: string;
   symbol: string;
   name: string;
   enabled: number;
   created_at: string;
+  groups: Group[];
 }
 
 export interface Algorithm {
