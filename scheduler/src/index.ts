@@ -87,10 +87,10 @@ async function run() {
     return;
   }
 
-  const notifyEmail = settings.notify_email;
-  if (!notifyEmail) {
-    console.log('No notify_email configured. Exiting.');
-    return;
+  const { data: recipients } = await api.get<{ id: string; email: string }[]>('/email-recipients');
+  const notifyEmails = recipients.map((r) => r.email);
+  if (notifyEmails.length === 0) {
+    console.log('No email recipients configured. Skipping email.');
   }
 
   const { data: watchlist } = await api.get<WatchlistItem[]>('/watchlist');
@@ -146,18 +146,20 @@ async function run() {
       signals: triggeredSignals.map(({ name: _n, ...s }) => s),
     });
 
-    await sendSignalEmail(
-      RESEND_API_KEY,
-      notifyEmail,
-      today,
-      triggeredSignals.map((s) => ({
-        symbol: s.symbol,
-        name: s.name,
-        closePrice: s.close_price,
-        triggeredConditions: ['條件符合'],
-      }))
-    );
-    console.log(`✉️  Sent email to ${notifyEmail} with ${triggeredSignals.length} signals`);
+    if (notifyEmails.length > 0) {
+      await sendSignalEmail(
+        RESEND_API_KEY,
+        notifyEmails,
+        today,
+        triggeredSignals.map((s) => ({
+          symbol: s.symbol,
+          name: s.name,
+          closePrice: s.close_price,
+          triggeredConditions: ['條件符合'],
+        }))
+      );
+      console.log(`✉️  Sent email to ${notifyEmails.length} recipients with ${triggeredSignals.length} signals`);
+    }
   } else {
     console.log('No signals today.');
   }
