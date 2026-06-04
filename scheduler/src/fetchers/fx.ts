@@ -6,7 +6,7 @@ const TRACKED_CURRENCIES = ['EUR', 'GBP', 'TWD', 'JPY', 'AUD', 'CHF'];
 export function computeCrossRate(rates: Record<string, number>, base: string, quote: string): number {
   if (base === 'USD') return rates[quote] ?? 0;
   if (quote === 'USD') return rates[base] ? 1 / rates[base] : 0;
-  return (rates[quote] ?? 0) / (rates[base] ?? 1);
+  return rates[base] ? (rates[quote] ?? 0) / rates[base] : 0;
 }
 
 export function rateRowsToOHLCV(
@@ -33,15 +33,16 @@ export class FxFetcher implements DataFetcher {
   async fetchOHLCV(symbol: string, _timeframe: 'daily' | 'hourly'): Promise<OHLCVData[]> {
     const [base, quote] = symbol.split('/');
     if (!base || !quote) return [];
-
-    await this.ensureTodayStored();
-
-    const { data: rows } = await this.internalApi.get<{ date: string; rates_json: string }[]>(
-      '/fx-daily',
-      { params: { limit: 90 } }
-    );
-
-    return rateRowsToOHLCV(rows, base, quote);
+    try {
+      await this.ensureTodayStored();
+      const { data: rows } = await this.internalApi.get<{ date: string; rates_json: string }[]>(
+        '/fx-daily',
+        { params: { limit: 90 } }
+      );
+      return rateRowsToOHLCV(rows, base, quote);
+    } catch {
+      return [];
+    }
   }
 
   private async ensureTodayStored(): Promise<void> {

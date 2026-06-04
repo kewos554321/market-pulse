@@ -10,7 +10,7 @@ import { CryptoFetcher } from '../src/fetchers/crypto.js';
 const mockGet = vi.mocked(axios.get);
 
 describe('CryptoFetcher', () => {
-  beforeEach(() => mockGet.mockReset());
+  beforeEach(() => { mockGet.mockReset(); });
 
   it('maps Binance klines response to OHLCVData', async () => {
     mockGet.mockResolvedValueOnce({

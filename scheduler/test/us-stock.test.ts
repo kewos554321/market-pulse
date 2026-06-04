@@ -10,7 +10,7 @@ import { UsStockFetcher } from '../src/fetchers/us-stock.js';
 const mockGet = vi.mocked(axios.get);
 
 describe('UsStockFetcher', () => {
-  beforeEach(() => mockGet.mockReset());
+  beforeEach(() => { mockGet.mockReset(); });
 
   it('maps Finnhub candle response to OHLCVData', async () => {
     mockGet.mockResolvedValueOnce({
