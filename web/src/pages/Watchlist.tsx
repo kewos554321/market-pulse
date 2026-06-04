@@ -14,6 +14,8 @@ export function Watchlist() {
   const [error, setError] = useState('');
   const [pickerOpenFor, setPickerOpenFor] = useState<string | null>(null);
   const [showBulkImport, setShowBulkImport] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [showNewGroupInput, setShowNewGroupInput] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -110,6 +112,50 @@ export function Watchlist() {
             </button>
           );
         })}
+        {/* New group inline input */}
+        {showNewGroupInput ? (
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!newGroupName.trim()) return;
+              const group = await api.createGroup(newGroupName.trim());
+              setGroups((prev) => [...prev, group]);
+              setActiveGroupId(group.id);
+              setNewGroupName('');
+              setShowNewGroupInput(false);
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 8px' }}
+          >
+            <input
+              autoFocus
+              value={newGroupName}
+              onChange={(e) => setNewGroupName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Escape') { setShowNewGroupInput(false); setNewGroupName(''); } }}
+              placeholder="群組名稱..."
+              style={{
+                border: '1.5px solid #6366f1', borderRadius: '6px', padding: '4px 8px',
+                fontSize: '12px', outline: 'none', width: '100px',
+              }}
+            />
+            <button type="submit" style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer' }}>
+              建立
+            </button>
+            <button type="button" onClick={() => { setShowNewGroupInput(false); setNewGroupName(''); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '12px', cursor: 'pointer' }}>
+              取消
+            </button>
+          </form>
+        ) : (
+          <button
+            onClick={() => setShowNewGroupInput(true)}
+            style={{
+              padding: '10px 12px', fontSize: '12px', border: 'none', background: 'none',
+              cursor: 'pointer', color: '#94a3b8', whiteSpace: 'nowrap',
+              borderBottom: '2px solid transparent',
+            }}
+          >
+            + 新增群組
+          </button>
+        )}
       </div>
 
       {/* Bulk import */}
