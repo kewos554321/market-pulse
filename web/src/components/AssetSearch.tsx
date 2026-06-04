@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import stocksData from '../data/stocks.json';
 import usStocksData from '../data/us-stocks.json';
 import { CRYPTO_LIST } from '../data/crypto';
@@ -45,12 +45,12 @@ export function AssetSearch({ assetType, onSelect }: Props) {
   const [results, setResults] = useState<Asset[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
-  const assets = getAssets(assetType);
+  const assets = useMemo(() => getAssets(assetType), [assetType]);
 
   useEffect(() => {
     setResults(filterAssets(assets, query));
     setActiveIndex(-1);
-  }, [query, assetType]);
+  }, [query, assets]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

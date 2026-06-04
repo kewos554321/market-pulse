@@ -19,8 +19,8 @@ export function AssetWatchlist({ assetType, label, description }: Props) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.getWatchlist()
-      .then((all) => setItems(all.filter((i) => i.asset_type === assetType)))
+    api.getWatchlist(assetType)
+      .then(setItems)
       .catch(console.error);
   }, [assetType]);
 
