@@ -5,9 +5,26 @@ export const signalRoutes = new Hono<{ Bindings: Env }>();
 
 signalRoutes.get('/', async (c) => {
   const limit = Number(c.req.query('limit') ?? 50);
-  const { results } = await c.env.DB.prepare(
-    'SELECT * FROM signals ORDER BY triggered_at DESC LIMIT ?'
-  ).bind(limit).all<SignalRow>();
+  const assetType = c.req.query('asset_type');
+
+  let query: string;
+  let binds: (string | number)[];
+
+  if (assetType) {
+    query = `
+      SELECT s.* FROM signals s
+      JOIN watchlist w ON w.id = s.watchlist_id
+      WHERE w.asset_type = ?
+      ORDER BY s.triggered_at DESC
+      LIMIT ?
+    `;
+    binds = [assetType, limit];
+  } else {
+    query = 'SELECT * FROM signals ORDER BY triggered_at DESC LIMIT ?';
+    binds = [limit];
+  }
+
+  const { results } = await c.env.DB.prepare(query).bind(...binds).all<SignalRow>();
   return c.json(results);
 });
 
