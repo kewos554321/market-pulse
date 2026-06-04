@@ -61,3 +61,10 @@ export interface RecommendationRow {
   strategies: string;
   created_at: string;
 }
+
+export interface EmailRecipientRow {
+  id: string;
+  email: string;
+  label: string | null;
+  created_at: string;
+}
