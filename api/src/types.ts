@@ -8,6 +8,14 @@ export interface WatchlistRow {
   symbol: string;
   name: string;
   enabled: number;
+  asset_type: string;
+  created_at: string;
+}
+
+export interface FxDailyRow {
+  id: string;
+  date: string;
+  rates_json: string;
   created_at: string;
 }
 
