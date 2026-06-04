@@ -1,10 +1,11 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import { Home } from './pages/Home';
-import { Watchlist } from './pages/Watchlist';
+import { TwStocks } from './pages/TwStocks';
+import { UsStocks } from './pages/UsStocks';
+import { Crypto } from './pages/Crypto';
+import { Fx } from './pages/Fx';
 import { AlgorithmEditor } from './pages/AlgorithmEditor';
-import { Signals } from './pages/Signals';
 import { Settings } from './pages/Settings';
-import { Recommendations } from './pages/Recommendations';
 
 export function App() {
   return (
@@ -21,9 +22,10 @@ export function App() {
           </span>
           {[
             { to: '/', label: '首頁', exact: true },
-            { to: '/watchlist', label: '追蹤清單', exact: false },
-            { to: '/recommendations', label: '推薦', exact: false },
-            { to: '/signals', label: '訊號歷史', exact: false },
+            { to: '/tw-stocks', label: '台股', exact: false },
+            { to: '/us-stocks', label: '美股', exact: false },
+            { to: '/crypto', label: '加密貨幣', exact: false },
+            { to: '/fx', label: '匯率', exact: false },
             { to: '/settings', label: '設定', exact: false },
           ].map(({ to, label, exact }) => (
             <NavLink
@@ -47,10 +49,11 @@ export function App() {
         <main style={{ maxWidth: '900px', margin: '0 auto', padding: '24px' }}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/watchlist" element={<Watchlist />} />
+            <Route path="/tw-stocks/*" element={<TwStocks />} />
+            <Route path="/us-stocks/*" element={<UsStocks />} />
+            <Route path="/crypto/*" element={<Crypto />} />
+            <Route path="/fx/*" element={<Fx />} />
             <Route path="/watchlist/:id/algorithm" element={<AlgorithmEditor />} />
-            <Route path="/recommendations" element={<Recommendations />} />
-            <Route path="/signals" element={<Signals />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </main>
