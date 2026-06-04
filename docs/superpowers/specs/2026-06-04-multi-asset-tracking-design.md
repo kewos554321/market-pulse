@@ -63,7 +63,7 @@ fetchOHLCV() → calculateIndicators() → evaluateConditionTree() → 通知
 |------|----------|----------|
 | 台股 | 日線 | 每日收盤後（現有） |
 | 美股 | 日線 | 每日收盤後（美東時間） |
-| 加密 | 小時線 | 每小時 |
+| 加密 | 小時線 | 每小時（scheduler 新增獨立 cron job） |
 | 匯率 | 日線 | 每日 |
 
 ### 初期簡化
@@ -95,6 +95,7 @@ fetchOHLCV() → calculateIndicators() → evaluateConditionTree() → 通知
 - 僅支援日線（符合需求）
 - 每次取得一個 base 幣對所有 quote 的匯率，一次呼叫涵蓋所有配對
 - 端點：`/v6/{API_KEY}/latest/{base}`
+- **OHLCV 轉換**：匯率 API 只回傳單一數值，fetcher 負責將其轉為 `{open, high, low, close: rate, volume: 0}` 格式，讓 indicator 計算不需修改
 
 ---
 
