@@ -10,6 +10,7 @@ import { recommendationStocksRoutes } from './routes/recommendation-stocks';
 import { recommendationsRoutes } from './routes/recommendations';
 import { emailRecipientsRoutes } from './routes/emailRecipients';
 import { lineWebhookRoutes } from './routes/lineWebhook';
+import { groupRoutes } from './routes/groups';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -24,5 +25,6 @@ app.route('/recommendation-stocks', recommendationStocksRoutes);
 app.route('/recommendations', recommendationsRoutes);
 app.route('/email-recipients', emailRecipientsRoutes);
 app.route('/line', lineWebhookRoutes);
+app.route('/groups', groupRoutes);
 
 export default app;
