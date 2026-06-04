@@ -8,7 +8,9 @@ settingsRoutes.get('/', async (c) => {
     key: string;
     value: string;
   }>();
-  const map = Object.fromEntries(results.map((r) => [r.key, r.value]));
+  const map = Object.fromEntries(
+    results.filter((r) => r.key !== 'line_channel_secret').map((r) => [r.key, r.value])
+  );
   return c.json(map);
 });
 
