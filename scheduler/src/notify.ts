@@ -9,7 +9,7 @@ export interface SignalSummary {
 
 export async function sendSignalEmail(
   apiKey: string,
-  toEmail: string,
+  toEmails: string[],
   date: string,
   signals: SignalSummary[]
 ): Promise<void> {
@@ -28,7 +28,7 @@ export async function sendSignalEmail(
 
   await resend.emails.send({
     from: 'Market Pulse <onboarding@resend.dev>',
-    to: toEmail,
+    to: toEmails,
     subject: `[Market Pulse] ${date} 發現 ${signals.length} 支符合條件的標的`,
     html: `
       <h2>今日觸發訊號 (${date})</h2>
