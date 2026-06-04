@@ -22,11 +22,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  getWatchlist: () => request<import('../types').WatchlistItem[]>('/watchlist'),
-  addStock: (symbol: string, name: string) =>
+  getWatchlist: (assetType?: string) => {
+    const qs = assetType ? `?asset_type=${assetType}` : '';
+    return request<import('../types').WatchlistItem[]>(`/watchlist${qs}`);
+  },
+  addStock: (symbol: string, name: string, assetType = 'tw_stock') =>
     request<import('../types').WatchlistItem>('/watchlist', {
       method: 'POST',
-      body: JSON.stringify({ symbol, name }),
+      body: JSON.stringify({ symbol, name, asset_type: assetType }),
     }),
   deleteStock: (id: string) => request<{ success: boolean }>(`/watchlist/${id}`, { method: 'DELETE' }),
   toggleStock: (id: string, enabled: boolean) =>
@@ -40,7 +43,11 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify({ conditions }),
     }),
-  getSignals: (limit = 50) => request<import('../types').Signal[]>(`/signals?limit=${limit}`),
+  getSignals: (limit = 50, assetType?: string) => {
+    const qs = new URLSearchParams({ limit: String(limit) });
+    if (assetType) qs.set('asset_type', assetType);
+    return request<import('../types').Signal[]>(`/signals?${qs}`);
+  },
   getSettings: () => request<Record<string, string>>('/settings'),
   saveSettings: (updates: Record<string, string>) =>
     request<{ success: boolean }>('/settings', { method: 'PUT', body: JSON.stringify(updates) }),

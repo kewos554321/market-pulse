@@ -9,6 +9,7 @@ export interface WatchlistItem {
   symbol: string;
   name: string;
   enabled: number;
+  asset_type: string;
   created_at: string;
   groups: Group[];
 }
