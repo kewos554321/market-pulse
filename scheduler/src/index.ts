@@ -4,6 +4,7 @@ import { fetchHistoricalData } from './finmind.js';
 import { calculateIndicators } from './indicators.js';
 import { evaluateConditionTree } from './evaluator.js';
 import { sendSignalEmail } from './notify.js';
+import { sendLineGroupMessage } from './line.js';
 import { BUILT_IN_STRATEGIES } from './strategies.js';
 import type { ConditionTree } from './types.js';
 
@@ -159,6 +160,29 @@ async function run() {
         }))
       );
       console.log(`✉️  Sent email to ${notifyEmails.length} recipients with ${triggeredSignals.length} signals`);
+    }
+
+    const lineToken = settings.line_channel_access_token;
+    const lineGroupId = settings.line_group_id;
+    if (lineToken && lineGroupId) {
+      try {
+        await sendLineGroupMessage(
+          lineToken,
+          lineGroupId,
+          today,
+          triggeredSignals.map((s) => ({
+            symbol: s.symbol,
+            name: s.name,
+            closePrice: s.close_price,
+            triggeredConditions: ['條件符合'],
+          }))
+        );
+        console.log(`💬 Sent LINE message to group ${lineGroupId}`);
+      } catch (err) {
+        console.error('LINE push failed:', err);
+      }
+    } else {
+      console.log('LINE not configured, skipping.');
     }
   } else {
     console.log('No signals today.');
