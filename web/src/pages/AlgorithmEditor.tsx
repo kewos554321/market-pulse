@@ -44,7 +44,7 @@ export function AlgorithmEditor() {
   return (
     <div>
       <button
-        onClick={() => navigate('/watchlist')}
+        onClick={() => navigate(-1)}
         style={{
           background: 'none', border: 'none', color: '#6366f1', fontSize: '13px',
           cursor: 'pointer', padding: '0', marginBottom: '16px', fontWeight: 500,
