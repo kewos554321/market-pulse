@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "node --env-file=.env --import tsx/esm src/index.ts",
+    "start:hourly": "node --env-file=.env --import tsx/esm src/index.ts hourly",
     "test": "vitest run"
   },
   "dependencies": {

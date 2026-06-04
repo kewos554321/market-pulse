@@ -1,102 +1,63 @@
 import axios from 'axios';
-import { fetchNinetyDays } from './twse.js';
-import { fetchHistoricalData } from './finmind.js';
 import { calculateIndicators } from './indicators.js';
 import { evaluateConditionTree } from './evaluator.js';
 import { sendSignalEmail } from './notify.js';
 import { sendLineGroupMessage } from './line.js';
 import { BUILT_IN_STRATEGIES } from './strategies.js';
+import { TwStockFetcher } from './fetchers/tw-stock.js';
+import { UsStockFetcher } from './fetchers/us-stock.js';
+import { CryptoFetcher } from './fetchers/crypto.js';
+import { FxFetcher } from './fetchers/fx.js';
+import type { DataFetcher } from './fetchers/types.js';
 import type { ConditionTree } from './types.js';
 
 const API_URL = process.env.WORKERS_API_URL!;
 const API_KEY = process.env.WORKERS_API_KEY!;
 const RESEND_API_KEY = process.env.RESEND_API_KEY!;
 const FINMIND_TOKEN = process.env.FINMIND_TOKEN ?? '';
+const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY ?? '';
+const EXCHANGERATE_API_KEY = process.env.EXCHANGERATE_API_KEY ?? '';
 
 const api = axios.create({
   baseURL: API_URL,
   headers: { 'X-API-Key': API_KEY },
 });
 
+function getFetcher(assetType: string): DataFetcher {
+  switch (assetType) {
+    case 'us_stock': return new UsStockFetcher(FINNHUB_API_KEY);
+    case 'crypto':   return new CryptoFetcher();
+    case 'fx':       return new FxFetcher(EXCHANGERATE_API_KEY, api);
+    default:         return new TwStockFetcher(FINMIND_TOKEN || undefined);
+  }
+}
+
 interface WatchlistItem {
   id: string;
   symbol: string;
   name: string;
   enabled: number;
+  asset_type: string;
 }
 
 interface AlgorithmResponse {
   conditions: ConditionTree;
 }
 
-async function fetchOhlcv(symbol: string) {
-  let ohlcv = await fetchNinetyDays(symbol);
-  if (ohlcv.length < 65) {
-    const d = new Date();
-    d.setMonth(d.getMonth() - 4);
-    const startDate = d.toISOString().split('T')[0];
-    ohlcv = await fetchHistoricalData(symbol, startDate, FINMIND_TOKEN || undefined);
-  }
-  return ohlcv;
-}
+async function runWatchlistScan(
+  assetType: string,
+  timeframe: 'daily' | 'hourly',
+  today: string,
+  notifyEmails: string[],
+  settings: Record<string, string>
+): Promise<void> {
+  const fetcher = getFetcher(assetType);
 
-async function runRecommendationScan(today: string) {
-  const { data: stockPool } = await api.get<{ symbol: string; name: string }[]>(
-    '/recommendation-stocks'
-  );
-  console.log(`Scanning ${stockPool.length} recommendation stocks...`);
-
-  const hits: {
-    symbol: string;
-    name: string;
-    close_price: number;
-    strategies: string[];
-  }[] = [];
-
-  for (const stock of stockPool) {
-    try {
-      const ohlcv = await fetchOhlcv(stock.symbol);
-      if (ohlcv.length < 30) {
-        console.log(`${stock.symbol}: insufficient data, skipping`);
-        continue;
-      }
-      const indicators = calculateIndicators(ohlcv);
-      const triggered = BUILT_IN_STRATEGIES
-        .filter((s) => evaluateConditionTree(s.conditions, indicators))
-        .map((s) => s.name);
-
-      if (triggered.length > 0) {
-        const closePrice = ohlcv[ohlcv.length - 1].close;
-        console.log(`✅ ${stock.symbol} ${stock.name}: ${triggered.join(', ')}`);
-        hits.push({ symbol: stock.symbol, name: stock.name, close_price: closePrice, strategies: triggered });
-      }
-    } catch (err) {
-      console.error(`Recommendation scan error for ${stock.symbol}:`, err);
-    }
-  }
-
-  await api.post('/recommendations', { date: today, items: hits });
-  console.log(`📊 Wrote ${hits.length} recommendations for ${today}`);
-}
-
-async function run() {
-  const today = new Date().toISOString().split('T')[0];
-
-  const { data: settings } = await api.get<Record<string, string>>('/settings');
-  if (settings.schedule_enabled !== '1') {
-    console.log('Scheduling disabled via settings. Exiting.');
-    return;
-  }
-
-  const { data: recipients } = await api.get<{ id: string; email: string }[]>('/email-recipients');
-  const notifyEmails = recipients.map((r) => r.email);
-  if (notifyEmails.length === 0) {
-    console.log('No email recipients configured. Skipping email.');
-  }
-
-  const { data: watchlist } = await api.get<WatchlistItem[]>('/watchlist');
+  const { data: watchlist } = await api.get<WatchlistItem[]>('/watchlist', {
+    params: { asset_type: assetType },
+  });
   const enabled = watchlist.filter((w) => w.enabled === 1);
-  console.log(`Processing ${enabled.length} items...`);
+  console.log(`[${assetType}] Processing ${enabled.length} items...`);
 
   const triggeredSignals: {
     watchlist_id: string;
@@ -114,7 +75,7 @@ async function run() {
         continue;
       }
 
-      const ohlcv = await fetchOhlcv(item.symbol);
+      const ohlcv = await fetcher.fetchOHLCV(item.symbol, timeframe);
 
       if (ohlcv.length < 30) {
         console.log(`${item.symbol}: still insufficient data (${ohlcv.length}), skipping`);
@@ -185,13 +146,101 @@ async function run() {
       console.log('LINE not configured, skipping.');
     }
   } else {
-    console.log('No signals today.');
+    console.log(`[${assetType}] No signals today.`);
   }
-
-  await runRecommendationScan(today);
 }
 
-run().catch((err) => {
-  console.error('Fatal error:', err);
-  process.exit(1);
-});
+async function runTwRecommendationScan(today: string): Promise<void> {
+  const fetcher = new TwStockFetcher(FINMIND_TOKEN || undefined);
+
+  const { data: stockPool } = await api.get<{ symbol: string; name: string }[]>(
+    '/recommendation-stocks'
+  );
+  console.log(`Scanning ${stockPool.length} recommendation stocks...`);
+
+  const hits: {
+    symbol: string;
+    name: string;
+    close_price: number;
+    strategies: string[];
+  }[] = [];
+
+  for (const stock of stockPool) {
+    try {
+      const ohlcv = await fetcher.fetchOHLCV(stock.symbol, 'daily');
+      if (ohlcv.length < 30) {
+        console.log(`${stock.symbol}: insufficient data, skipping`);
+        continue;
+      }
+      const indicators = calculateIndicators(ohlcv);
+      const triggered = BUILT_IN_STRATEGIES
+        .filter((s) => evaluateConditionTree(s.conditions, indicators))
+        .map((s) => s.name);
+
+      if (triggered.length > 0) {
+        const closePrice = ohlcv[ohlcv.length - 1].close;
+        console.log(`✅ ${stock.symbol} ${stock.name}: ${triggered.join(', ')}`);
+        hits.push({ symbol: stock.symbol, name: stock.name, close_price: closePrice, strategies: triggered });
+      }
+    } catch (err) {
+      console.error(`Recommendation scan error for ${stock.symbol}:`, err);
+    }
+  }
+
+  await api.post('/recommendations', { date: today, items: hits });
+  console.log(`📊 Wrote ${hits.length} recommendations for ${today}`);
+}
+
+async function runDaily(): Promise<void> {
+  const today = new Date().toISOString().split('T')[0];
+
+  const { data: settings } = await api.get<Record<string, string>>('/settings');
+  if (settings.schedule_enabled !== '1') {
+    console.log('Scheduling disabled via settings. Exiting.');
+    return;
+  }
+
+  const { data: recipients } = await api.get<{ id: string; email: string }[]>('/email-recipients');
+  const notifyEmails = recipients.map((r) => r.email);
+  if (notifyEmails.length === 0) {
+    console.log('No email recipients configured. Skipping email.');
+  }
+
+  await runWatchlistScan('tw_stock', 'daily', today, notifyEmails, settings);
+  await runWatchlistScan('us_stock', 'daily', today, notifyEmails, settings);
+  await runWatchlistScan('fx', 'daily', today, notifyEmails, settings);
+
+  await runTwRecommendationScan(today);
+}
+
+async function runHourly(): Promise<void> {
+  const today = new Date().toISOString().split('T')[0];
+
+  const { data: settings } = await api.get<Record<string, string>>('/settings');
+  if (settings.schedule_enabled !== '1') {
+    console.log('Scheduling disabled via settings. Exiting.');
+    return;
+  }
+
+  const { data: recipients } = await api.get<{ id: string; email: string }[]>('/email-recipients');
+  const notifyEmails = recipients.map((r) => r.email);
+  if (notifyEmails.length === 0) {
+    console.log('No email recipients configured. Skipping email.');
+  }
+
+  await runWatchlistScan('crypto', 'hourly', today, notifyEmails, settings);
+}
+
+const mode = process.argv[2] ?? 'daily';
+
+if (mode === 'hourly') {
+  runHourly().catch((err) => {
+    console.error('Fatal error:', err);
+    process.exit(1);
+  });
+} else {
+  runDaily().catch((err) => {
+    console.error('Fatal error:', err);
+    process.exit(1);
+  });
+}
