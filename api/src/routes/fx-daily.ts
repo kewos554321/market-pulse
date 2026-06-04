@@ -4,11 +4,11 @@ import { Env, FxDailyRow } from '../types';
 export const fxDailyRoutes = new Hono<{ Bindings: Env }>();
 
 fxDailyRoutes.get('/', async (c) => {
-  const limit = Number(c.req.query('limit') ?? 90);
+  const limit = Math.max(1, parseInt(c.req.query('limit') ?? '90', 10) || 90);
   const { results } = await c.env.DB.prepare(
     'SELECT * FROM fx_daily ORDER BY date DESC LIMIT ?'
   ).bind(limit).all<FxDailyRow>();
-  return c.json(results.reverse());
+  return c.json([...results].reverse());
 });
 
 fxDailyRoutes.post('/', async (c) => {
@@ -22,5 +22,5 @@ fxDailyRoutes.post('/', async (c) => {
     'INSERT INTO fx_daily (id, date, rates_json, created_at) VALUES (?, ?, ?, ?) ON CONFLICT(date) DO UPDATE SET rates_json = excluded.rates_json'
   ).bind(id, date, rates_json, now).run();
 
-  return c.json({ success: true }, 201);
+  return c.json({ success: true });
 });
