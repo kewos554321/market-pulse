@@ -1,3 +1,10 @@
+export interface EmailRecipient {
+  id: string;
+  email: string;
+  label: string | null;
+  created_at: string;
+}
+
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
 
@@ -46,4 +53,12 @@ export const api = {
     }),
   deleteRecommendationStock: (symbol: string) =>
     request<{ success: boolean }>(`/recommendation-stocks/${symbol}`, { method: 'DELETE' }),
+  getEmailRecipients: () => request<EmailRecipient[]>('/email-recipients'),
+  addEmailRecipient: (email: string, label?: string) =>
+    request<EmailRecipient>('/email-recipients', {
+      method: 'POST',
+      body: JSON.stringify({ email, label }),
+    }),
+  deleteEmailRecipient: (id: string) =>
+    request<{ success: boolean }>(`/email-recipients/${id}`, { method: 'DELETE' }),
 };
