@@ -31,6 +31,13 @@ export function Settings() {
   const [newLabel, setNewLabel] = useState('');
   const [emailError, setEmailError] = useState('');
 
+  const [lineToken, setLineToken] = useState('');
+  const [lineSecret, setLineSecret] = useState('');
+  const [lineGroupId, setLineGroupId] = useState('');
+  const [lineTokenSet, setLineTokenSet] = useState(false);
+  const [lineSecretSet, setLineSecretSet] = useState(false);
+  const [lineSaved, setLineSaved] = useState(false);
+
   const [stocks, setStocks] = useState<RecommendationStock[]>([]);
   const [newSymbol, setNewSymbol] = useState('');
   const [newName, setNewName] = useState('');
@@ -40,6 +47,9 @@ export function Settings() {
   useEffect(() => {
     api.getSettings().then((s) => {
       setEnabled(s.schedule_enabled !== '0');
+      setLineGroupId(s.line_group_id ?? '');
+      setLineTokenSet(!!s.line_channel_access_token);
+      setLineSecretSet(false);
     }).catch(console.error);
 
     api.getEmailRecipients()
@@ -80,6 +90,21 @@ export function Settings() {
     if (!confirm('確定要移除此收件人？')) return;
     await api.deleteEmailRecipient(id);
     setRecipients((prev) => prev.filter((r) => r.id !== id));
+  }
+
+  async function handleSaveLine(e: React.FormEvent) {
+    e.preventDefault();
+    const updates: Record<string, string> = {};
+    if (lineToken) updates.line_channel_access_token = lineToken;
+    if (lineSecret) updates.line_channel_secret = lineSecret;
+    if (lineGroupId) updates.line_group_id = lineGroupId;
+    await api.saveSettings(updates);
+    if (lineToken) setLineTokenSet(true);
+    if (lineSecret) setLineSecretSet(true);
+    setLineToken('');
+    setLineSecret('');
+    setLineSaved(true);
+    setTimeout(() => setLineSaved(false), 2000);
   }
 
   async function handleAddStock(e: React.FormEvent) {
@@ -194,6 +219,62 @@ export function Settings() {
             </tbody>
           </table>
         )}
+      </div>
+
+      {/* LINE notification */}
+      <div style={{ marginTop: '32px', marginBottom: '12px' }}>
+        <h2 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>LINE 通知</h2>
+        <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+          將 Bot 加入群組後 Group ID 將自動填入。
+          Webhook URL：<code style={{ fontSize: '12px', background: '#f1f5f9', padding: '1px 4px', borderRadius: '4px' }}>https://&lt;workers-domain&gt;/line/webhook</code>
+        </p>
+      </div>
+
+      <div style={{ ...cardStyle, maxWidth: '480px' }}>
+        <form onSubmit={handleSaveLine} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+              Channel Access Token
+            </label>
+            <input
+              type="password"
+              value={lineToken}
+              onChange={(e) => setLineToken(e.target.value)}
+              placeholder={lineTokenSet ? '已設定（留空保持不變）' : '貼上 Channel Access Token'}
+              style={{ ...inputStyle, width: '100%' }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+              Channel Secret
+            </label>
+            <input
+              type="password"
+              value={lineSecret}
+              onChange={(e) => setLineSecret(e.target.value)}
+              placeholder={lineSecretSet ? '已設定（留空保持不變）' : '貼上 Channel Secret（用於驗證 webhook）'}
+              style={{ ...inputStyle, width: '100%' }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+              Group ID
+            </label>
+            <input
+              type="text"
+              value={lineGroupId}
+              onChange={(e) => setLineGroupId(e.target.value)}
+              placeholder="Bot 加入群組後自動填入，或手動輸入"
+              style={{ ...inputStyle, width: '100%' }}
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button type="submit" style={btnStyle}>儲存 LINE 設定</button>
+            {lineSaved && (
+              <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 500 }}>已儲存 ✓</span>
+            )}
+          </div>
+        </form>
       </div>
 
       {/* Recommendation stock pool */}
