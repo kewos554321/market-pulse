@@ -5,6 +5,7 @@ import { UsStocks } from './pages/UsStocks';
 import { Crypto } from './pages/Crypto';
 import { Fx } from './pages/Fx';
 import { AlgorithmEditor } from './pages/AlgorithmEditor';
+import { AlgorithmLibrary } from './pages/AlgorithmLibrary';
 import { Settings } from './pages/Settings';
 
 export function App() {
@@ -27,6 +28,7 @@ export function App() {
             { to: '/crypto', label: '加密貨幣', exact: false },
             { to: '/fx', label: '匯率', exact: false },
             { to: '/settings', label: '設定', exact: false },
+            { to: '/algorithm-library', label: '算法庫', exact: false },
           ].map(({ to, label, exact }) => (
             <NavLink
               key={to}
@@ -55,6 +57,7 @@ export function App() {
             <Route path="/fx/*" element={<Fx />} />
             <Route path="/watchlist/:id/algorithm" element={<AlgorithmEditor />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/algorithm-library" element={<AlgorithmLibrary />} />
           </Routes>
         </main>
       </div>
