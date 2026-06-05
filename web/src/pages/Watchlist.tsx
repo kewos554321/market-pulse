@@ -6,6 +6,20 @@ import { GroupPicker } from '../components/GroupPicker';
 import { BulkImport } from '../components/BulkImport';
 import { AlgorithmTemplatePicker } from '../components/AlgorithmTemplatePicker';
 import type { WatchlistItem, Group, AlgorithmTemplate } from '../types';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export function Watchlist() {
   const [items, setItems] = useState<WatchlistItem[]>([]);
@@ -21,6 +35,8 @@ export function Watchlist() {
   const [batchPickerOpen, setBatchPickerOpen] = useState(false);
   const [batchApplying, setBatchApplying] = useState(false);
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   useEffect(() => {
     api.getWatchlist().then(setItems).catch(console.error);
@@ -32,6 +48,12 @@ export function Watchlist() {
   const filteredItems = activeGroupId
     ? items.filter((item) => item.groups.some((g) => g.id === activeGroupId))
     : items;
+  const totalPages = Math.ceil(filteredItems.length / pageSize);
+  const pagedItems = filteredItems.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) setCurrentPage(totalPages);
+  }, [totalPages, currentPage]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -139,7 +161,7 @@ export function Watchlist() {
             return (
               <div key={g.id} style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                 <button
-                  onClick={() => { setActiveGroupId(g.id); setShowBulkImport(false); }}
+                  onClick={() => { setActiveGroupId(g.id); setShowBulkImport(false); setCurrentPage(1); }}
                   style={{
                     padding: '10px 12px 10px 16px', fontSize: '13px', border: 'none', background: 'none',
                     cursor: 'pointer', whiteSpace: 'nowrap',
@@ -307,7 +329,7 @@ export function Watchlist() {
               : '還沒有追蹤的股票，從上方搜尋新增吧'}
           </div>
         )}
-        {filteredItems.map((item) => (
+        {pagedItems.map((item) => (
           <div
             key={item.id}
             style={{
@@ -409,6 +431,48 @@ export function Watchlist() {
           </div>
         ))}
       </div>
+
+      {filteredItems.length > 0 && (
+        <div className="flex items-center justify-between mt-4 gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500">每頁</span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(v) => { setPageSize(Number(v)); setCurrentPage(1); }}
+            >
+              <SelectTrigger className="w-[70px] h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <span className="text-xs text-slate-500">
+            第 {currentPage} / {totalPages} 頁（共 {filteredItems.length} 筆）
+          </span>
+          <Pagination className="w-auto mx-0">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  aria-disabled={currentPage === 1}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-40' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  aria-disabled={currentPage === totalPages}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-40' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }
