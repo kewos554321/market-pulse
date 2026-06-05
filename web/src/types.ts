@@ -1,7 +1,23 @@
+export interface AlgorithmTemplate {
+  id: string;
+  name: string;
+  conditions: ConditionTree;
+  updated_at: string;
+}
+
+export interface AlgorithmState {
+  source: 'group' | 'custom';
+  sourceGroupId?: string;
+  sourceGroupName?: string;
+  templateName?: string | null;
+  conditions: ConditionTree;
+}
+
 export interface Group {
   id: string;
   name: string;
   count?: number;
+  algorithmTemplate: { id: string; name: string } | null;
 }
 
 export interface WatchlistItem {
@@ -9,9 +25,10 @@ export interface WatchlistItem {
   symbol: string;
   name: string;
   enabled: number;
-  asset_type: string;
+  asset_type?: string;
   created_at: string;
   groups: Group[];
+  algorithm_source_group_id: string | null;
 }
 
 export interface Algorithm {

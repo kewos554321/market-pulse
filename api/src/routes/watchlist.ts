@@ -8,7 +8,7 @@ watchlistRoutes.get('/', async (c) => {
   const assetType = c.req.query('asset_type');
   const whereClause = assetType ? 'WHERE w.asset_type = ?' : '';
   const query = `
-    SELECT w.id, w.symbol, w.name, w.enabled, w.asset_type, w.created_at,
+    SELECT w.id, w.symbol, w.name, w.enabled, w.asset_type, w.algorithm_source_group_id, w.created_at,
       COALESCE(
         json_group_array(
           CASE WHEN g.id IS NOT NULL
@@ -34,7 +34,7 @@ watchlistRoutes.get('/', async (c) => {
 watchlistRoutes.get('/:id', async (c) => {
   const { id } = c.req.param();
   const query = `
-    SELECT w.id, w.symbol, w.name, w.enabled, w.asset_type, w.created_at,
+    SELECT w.id, w.symbol, w.name, w.enabled, w.asset_type, w.algorithm_source_group_id, w.created_at,
       COALESCE(
         json_group_array(
           CASE WHEN g.id IS NOT NULL
@@ -56,10 +56,11 @@ watchlistRoutes.get('/:id', async (c) => {
 });
 
 watchlistRoutes.post('/', async (c) => {
-  const { symbol, name, asset_type = 'tw_stock' } = await c.req.json<{
+  const { symbol, name, asset_type = 'tw_stock', sourceGroupId = null } = await c.req.json<{
     symbol: string;
     name: string;
     asset_type?: string;
+    sourceGroupId?: string | null;
   }>();
   if (!symbol || !name) return c.json({ error: 'symbol and name required' }, 400);
 
@@ -67,14 +68,19 @@ watchlistRoutes.post('/', async (c) => {
   const now = new Date().toISOString();
 
   await c.env.DB.prepare(
-    'INSERT INTO watchlist (id, symbol, name, enabled, asset_type, created_at) VALUES (?, ?, ?, 1, ?, ?)'
-  ).bind(id, symbol.trim(), name.trim(), asset_type, now).run();
+    'INSERT INTO watchlist (id, symbol, name, enabled, asset_type, algorithm_source_group_id, created_at) VALUES (?, ?, ?, 1, ?, ?, ?)'
+  ).bind(id, symbol.trim(), name.trim(), asset_type, sourceGroupId, now).run();
 
   await c.env.DB.prepare(
     'INSERT INTO algorithms (id, watchlist_id, conditions, updated_at) VALUES (?, ?, ?, ?)'
   ).bind(crypto.randomUUID(), id, '{"operator":"AND","conditions":[]}', now).run();
 
-  return c.json({ id, symbol: symbol.trim(), name: name.trim(), enabled: 1, asset_type, groups: [], created_at: now }, 201);
+  return c.json({
+    id, symbol: symbol.trim(), name: name.trim(),
+    enabled: 1, asset_type, groups: [],
+    algorithm_source_group_id: sourceGroupId,
+    created_at: now,
+  }, 201);
 });
 
 watchlistRoutes.delete('/:id', async (c) => {
@@ -108,5 +114,17 @@ watchlistRoutes.put('/:id/groups', async (c) => {
     ),
   ];
   await c.env.DB.batch(stmts);
+  return c.json({ success: true });
+});
+
+watchlistRoutes.put('/:id/algorithm-source', async (c) => {
+  const { id } = c.req.param();
+  const { sourceGroupId } = await c.req.json<{ sourceGroupId: string | null }>();
+
+  const result = await c.env.DB.prepare(
+    'UPDATE watchlist SET algorithm_source_group_id = ? WHERE id = ?'
+  ).bind(sourceGroupId ?? null, id).run();
+
+  if (result.meta.changes === 0) return c.json({ error: 'Not found' }, 404);
   return c.json({ success: true });
 });

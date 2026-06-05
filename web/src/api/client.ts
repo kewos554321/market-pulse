@@ -37,7 +37,7 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ enabled }),
     }),
-  getAlgorithm: (id: string) => request<import('../types').Algorithm>(`/watchlist/${id}/algorithm`),
+  getAlgorithm: (id: string) => request<import('../types').AlgorithmState>(`/watchlist/${id}/algorithm`),
   saveAlgorithm: (id: string, conditions: import('../types').ConditionTree) =>
     request<{ success: boolean }>(`/watchlist/${id}/algorithm`, {
       method: 'PUT',
@@ -79,5 +79,34 @@ export const api = {
     request<{ success: boolean }>(`/watchlist/${watchlistId}/groups`, {
       method: 'PUT',
       body: JSON.stringify({ groupIds }),
+    }),
+  getAlgorithmTemplates: () =>
+    request<import('../types').AlgorithmTemplate[]>('/algorithm-templates'),
+  createAlgorithmTemplate: (name: string, conditions: import('../types').ConditionTree) =>
+    request<import('../types').AlgorithmTemplate>('/algorithm-templates', {
+      method: 'POST',
+      body: JSON.stringify({ name, conditions }),
+    }),
+  updateAlgorithmTemplate: (id: string, name: string, conditions: import('../types').ConditionTree) =>
+    request<{ success: boolean }>(`/algorithm-templates/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name, conditions }),
+    }),
+  deleteAlgorithmTemplate: (id: string) =>
+    request<{ success: boolean }>(`/algorithm-templates/${id}`, { method: 'DELETE' }),
+  setGroupAlgorithmTemplate: (groupId: string, templateId: string | null) =>
+    request<{ success: boolean }>(`/groups/${groupId}/algorithm-template`, {
+      method: 'PUT',
+      body: JSON.stringify({ templateId }),
+    }),
+  setWatchlistAlgorithmSource: (watchlistId: string, sourceGroupId: string | null) =>
+    request<{ success: boolean }>(`/watchlist/${watchlistId}/algorithm-source`, {
+      method: 'PUT',
+      body: JSON.stringify({ sourceGroupId }),
+    }),
+  addStockWithSource: (symbol: string, name: string, assetType = 'tw_stock', sourceGroupId: string | null = null) =>
+    request<import('../types').WatchlistItem>('/watchlist', {
+      method: 'POST',
+      body: JSON.stringify({ symbol, name, asset_type: assetType, sourceGroupId }),
     }),
 };
