@@ -1,9 +1,11 @@
 {
   "name": "market-pulse-api",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "test": "vitest run",
     "migrate:local": "wrangler d1 migrations apply market-pulse --local",
     "migrate:prod": "wrangler d1 migrations apply market-pulse --remote"
   },
@@ -13,6 +15,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240725.0",
     "typescript": "^5.5.0",
+    "vitest": "^1.6.0",
     "wrangler": "^4.97.0"
   }
 }
