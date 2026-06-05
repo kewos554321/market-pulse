@@ -7,6 +7,7 @@ import { Fx } from './pages/Fx';
 import { AlgorithmEditor } from './pages/AlgorithmEditor';
 import { AlgorithmLibrary } from './pages/AlgorithmLibrary';
 import { Settings } from './pages/Settings';
+import { Recommendations } from './pages/Recommendations';
 
 export function App() {
   return (
@@ -27,6 +28,7 @@ export function App() {
             { to: '/us-stocks', label: '美股', exact: false },
             { to: '/crypto', label: '加密貨幣', exact: false },
             { to: '/fx', label: '匯率', exact: false },
+            { to: '/recommendations', label: '推薦', exact: false },
             { to: '/settings', label: '設定', exact: false },
             { to: '/algorithm-library', label: '算法庫', exact: false },
           ].map(({ to, label, exact }) => (
@@ -56,6 +58,7 @@ export function App() {
             <Route path="/crypto/*" element={<Crypto />} />
             <Route path="/fx/*" element={<Fx />} />
             <Route path="/watchlist/:id/algorithm" element={<AlgorithmEditor />} />
+            <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/algorithm-library" element={<AlgorithmLibrary />} />
           </Routes>
