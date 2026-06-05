@@ -1,13 +1,26 @@
 # Watchlist Client-side Pagination Design
 
 **Date:** 2026-06-05
-**Scope:** `web/src/pages/Watchlist.tsx` only — no API changes required.
+**Scope:** `web/` — Tailwind CSS + shadcn/ui setup, then `web/src/pages/Watchlist.tsx` pagination.
 
 ---
 
 ## Overview
 
-Add client-side pagination to the Watchlist page. All data is already loaded from the API in one request; pagination slices the in-memory list for display. No server-side changes are needed.
+Two parts:
+1. **Install Tailwind CSS + shadcn/ui** into `web/` — replaces hand-written inline styles going forward.
+2. **Add client-side pagination** to the Watchlist page using shadcn/ui's `<Pagination>` and `<Select>` components. All data is loaded from the API in one request; pagination slices the in-memory list for display. No server-side changes are needed.
+
+## UI Framework
+
+| Package | Purpose |
+|---|---|
+| `tailwindcss` + `@tailwindcss/vite` | Utility-first CSS, replaces inline styles |
+| `shadcn/ui` | Component primitives built on Radix UI (accessible by default) |
+
+Components used for pagination:
+- `shadcn/ui Pagination` — prev/next buttons + page info
+- `shadcn/ui Select` — page size selector (10 / 20 / 50)
 
 ---
 
@@ -61,13 +74,14 @@ Placed **below** the stock list. Layout (left to right):
 
 ### Style
 
-Reuse existing button style: `background: #f1f5f9`, `color: #374151`, `border: none`, `borderRadius: 6px`, `padding: 6px 12px`, `fontSize: 12px`. Disabled state: `opacity: 0.4`, `cursor: not-allowed`.
+Use shadcn/ui `<Pagination>` and `<Select>` components — accessibility (keyboard nav, ARIA, disabled states) handled by Radix UI underneath. Tailwind classes for layout/spacing.
 
 ---
 
 ## Out of Scope
 
+- Migrating existing inline styles on other pages to Tailwind (only Watchlist pagination uses Tailwind/shadcn for now)
 - Search and filter (explicitly excluded)
 - Server-side pagination
 - Pagination on Signals, Recommendations, or AlgorithmLibrary pages
-- Extracting a shared `usePagination` hook or `<Pagination>` component
+- Extracting a shared `usePagination` hook
