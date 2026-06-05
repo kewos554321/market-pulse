@@ -4,7 +4,8 @@ import { api } from '../api/client';
 import { StockSearch } from '../components/StockSearch';
 import { GroupPicker } from '../components/GroupPicker';
 import { BulkImport } from '../components/BulkImport';
-import type { WatchlistItem, Group } from '../types';
+import { AlgorithmTemplatePicker } from '../components/AlgorithmTemplatePicker';
+import type { WatchlistItem, Group, AlgorithmTemplate } from '../types';
 
 export function Watchlist() {
   const [items, setItems] = useState<WatchlistItem[]>([]);
@@ -16,11 +17,14 @@ export function Watchlist() {
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [showNewGroupInput, setShowNewGroupInput] = useState(false);
+  const [templates, setTemplates] = useState<AlgorithmTemplate[]>([]);
+  const [templatePickerOpenFor, setTemplatePickerOpenFor] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     api.getWatchlist().then(setItems).catch(console.error);
     api.getGroups().then(setGroups).catch(console.error);
+    api.getAlgorithmTemplates().then(setTemplates).catch(console.error);
   }, []);
 
   const activeGroup = groups.find((g) => g.id === activeGroupId) ?? null;
@@ -33,8 +37,11 @@ export function Watchlist() {
     if (!selected) return;
     setError('');
     try {
-      const item = await api.addStock(selected.symbol, selected.name);
-      const newItem: WatchlistItem = { ...item, groups: [] };
+      const item = await api.addStockWithSource(
+        selected.symbol, selected.name, 'tw_stock',
+        activeGroupId ?? null
+      );
+      const newItem = { ...item, groups: [] as Group[] };
       if (activeGroupId && activeGroup) {
         await api.setWatchlistGroups(item.id, [activeGroupId]);
         newItem.groups = [activeGroup];
@@ -79,6 +86,16 @@ export function Watchlist() {
     await api.setWatchlistGroups(itemId, newIds);
     setItems((prev) => prev.map((i) =>
       i.id === itemId ? { ...i, groups: [...i.groups, group] } : i
+    ));
+  }
+
+  async function handleSetGroupTemplate(groupId: string, templateId: string | null) {
+    await api.setGroupAlgorithmTemplate(groupId, templateId);
+    const templateObj = templates.find((t) => t.id === templateId) ?? null;
+    setGroups((prev) => prev.map((g) =>
+      g.id === groupId
+        ? { ...g, algorithmTemplate: templateObj ? { id: templateObj.id, name: templateObj.name } : null }
+        : g
     ));
   }
 
@@ -155,6 +172,30 @@ export function Watchlist() {
           >
             + 新增群組
           </button>
+        )}
+        {/* Group algorithm template picker */}
+        {activeGroupId && activeGroup && (
+          <div style={{ position: 'relative', marginLeft: 'auto', flexShrink: 0 }}>
+            <button
+              onClick={() => setTemplatePickerOpenFor(templatePickerOpenFor === activeGroupId ? null : activeGroupId)}
+              style={{
+                padding: '6px 12px', margin: '6px 8px', fontSize: '12px', fontWeight: 600,
+                color: '#6366f1', background: '#eff6ff', border: 'none', borderRadius: '8px',
+                cursor: 'pointer', whiteSpace: 'nowrap',
+              }}
+            >
+              ⚙ {activeGroup.algorithmTemplate ? `群組算法：${activeGroup.algorithmTemplate.name} ▾` : '未設預設算法 ▾'}
+            </button>
+            {templatePickerOpenFor === activeGroupId && (
+              <AlgorithmTemplatePicker
+                templates={templates}
+                group={activeGroup}
+                onSelect={(templateId) => handleSetGroupTemplate(activeGroupId, templateId)}
+                onClose={() => setTemplatePickerOpenFor(null)}
+                onCreateNew={() => navigate('/algorithm-library')}
+              />
+            )}
+          </div>
         )}
       </div>
 
@@ -253,7 +294,31 @@ export function Watchlist() {
                   {item.enabled ? '追蹤中' : '已暫停'}
                 </span>
               </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {/* Algorithm source badge */}
+                {(() => {
+                  const srcGroup = item.algorithm_source_group_id
+                    ? groups.find((g) => g.id === item.algorithm_source_group_id)
+                    : null;
+                  if (!srcGroup) {
+                    return (
+                      <span style={{ fontSize: '11px', background: '#f8fafc', color: '#64748b', padding: '2px 10px', borderRadius: '99px', border: '1px solid #e2e8f0' }}>
+                        自訂算法
+                      </span>
+                    );
+                  }
+                  const hasTemplate = !!srcGroup.algorithmTemplate;
+                  return (
+                    <span style={{
+                      fontSize: '11px', padding: '2px 10px', borderRadius: '99px', border: '1px solid',
+                      background: hasTemplate ? '#eff6ff' : '#fffbeb',
+                      color: hasTemplate ? '#6366f1' : '#d97706',
+                      borderColor: hasTemplate ? '#c7d2fe' : '#fde68a',
+                    }}>
+                      繼承：{srcGroup.name}{!hasTemplate ? '（未設模板）' : ''}
+                    </span>
+                  );
+                })()}
                 <button
                   onClick={() => navigate(`/watchlist/${item.id}/algorithm`)}
                   style={{ background: '#f1f5f9', color: '#374151', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' }}
