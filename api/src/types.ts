@@ -9,6 +9,7 @@ export interface WatchlistRow {
   name: string;
   enabled: number;
   asset_type: string;
+  algorithm_source_group_id: string | null;
   created_at: string;
 }
 
@@ -23,6 +24,14 @@ export interface AlgorithmRow {
   id: string;
   watchlist_id: string;
   conditions: string;
+  updated_at: string;
+}
+
+export interface AlgorithmTemplateRow {
+  id: string;
+  name: string;
+  conditions: string;
+  created_at: string;
   updated_at: string;
 }
 
