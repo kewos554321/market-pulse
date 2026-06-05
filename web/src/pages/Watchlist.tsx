@@ -89,6 +89,12 @@ export function Watchlist() {
     ));
   }
 
+  async function handleDeleteGroup(groupId: string) {
+    await api.deleteGroup(groupId);
+    setGroups((prev) => prev.filter((g) => g.id !== groupId));
+    if (activeGroupId === groupId) setActiveGroupId(null);
+  }
+
   async function handleSetGroupTemplate(groupId: string, templateId: string | null) {
     await api.setGroupAlgorithmTemplate(groupId, templateId);
     const templateObj = templates.find((t) => t.id === templateId) ?? null;
@@ -109,73 +115,101 @@ export function Watchlist() {
       {/* Group tabs */}
       <div style={{
         display: 'flex', alignItems: 'center', borderBottom: '1px solid #e2e8f0',
-        marginBottom: '16px', overflowX: 'auto',
+        marginBottom: '16px',
       }}>
-        {[{ id: null as string | null, name: '全部' }, ...groups].map((g) => {
-          const isActive = g.id === activeGroupId;
-          return (
+        {/* Scrollable tab strip — overflow contained here, NOT on outer div */}
+        <div style={{ display: 'flex', alignItems: 'center', overflowX: 'auto', flex: 1, minWidth: 0 }}>
+          <button
+            onClick={() => { setActiveGroupId(null); setShowBulkImport(false); }}
+            style={{
+              padding: '10px 16px', fontSize: '13px', border: 'none', background: 'none',
+              cursor: 'pointer', whiteSpace: 'nowrap',
+              color: activeGroupId === null ? '#6366f1' : '#94a3b8',
+              fontWeight: activeGroupId === null ? 600 : 400,
+              borderBottom: activeGroupId === null ? '2px solid #6366f1' : '2px solid transparent',
+            }}
+          >
+            全部
+          </button>
+          {groups.map((g) => {
+            const isActive = g.id === activeGroupId;
+            return (
+              <div key={g.id} style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                <button
+                  onClick={() => { setActiveGroupId(g.id); setShowBulkImport(false); }}
+                  style={{
+                    padding: '10px 12px 10px 16px', fontSize: '13px', border: 'none', background: 'none',
+                    cursor: 'pointer', whiteSpace: 'nowrap',
+                    color: isActive ? '#6366f1' : '#94a3b8',
+                    fontWeight: isActive ? 600 : 400,
+                    borderBottom: isActive ? '2px solid #6366f1' : '2px solid transparent',
+                  }}
+                >
+                  {g.name}
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDeleteGroup(g.id); }}
+                  title="刪除群組"
+                  style={{
+                    fontSize: '10px', color: '#cbd5e1', background: 'none', border: 'none',
+                    cursor: 'pointer', padding: '0 6px 0 0', lineHeight: 1,
+                    borderBottom: isActive ? '2px solid #6366f1' : '2px solid transparent',
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
+          {/* New group inline input */}
+          {showNewGroupInput ? (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!newGroupName.trim()) return;
+                const group = await api.createGroup(newGroupName.trim());
+                setGroups((prev) => [...prev, group]);
+                setActiveGroupId(group.id);
+                setNewGroupName('');
+                setShowNewGroupInput(false);
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 8px' }}
+            >
+              <input
+                autoFocus
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Escape') { setShowNewGroupInput(false); setNewGroupName(''); } }}
+                placeholder="群組名稱..."
+                style={{
+                  border: '1.5px solid #6366f1', borderRadius: '6px', padding: '4px 8px',
+                  fontSize: '12px', outline: 'none', width: '100px',
+                }}
+              />
+              <button type="submit" style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer' }}>
+                建立
+              </button>
+              <button type="button" onClick={() => { setShowNewGroupInput(false); setNewGroupName(''); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '12px', cursor: 'pointer' }}>
+                取消
+              </button>
+            </form>
+          ) : (
             <button
-              key={g.id ?? 'all'}
-              onClick={() => { setActiveGroupId(g.id); setShowBulkImport(false); }}
+              onClick={() => setShowNewGroupInput(true)}
               style={{
-                padding: '10px 16px', fontSize: '13px', border: 'none', background: 'none',
-                cursor: 'pointer', whiteSpace: 'nowrap',
-                color: isActive ? '#6366f1' : '#94a3b8',
-                fontWeight: isActive ? 600 : 400,
-                borderBottom: isActive ? '2px solid #6366f1' : '2px solid transparent',
+                padding: '10px 12px', fontSize: '12px', border: 'none', background: 'none',
+                cursor: 'pointer', color: '#94a3b8', whiteSpace: 'nowrap',
+                borderBottom: '2px solid transparent',
               }}
             >
-              {g.name}
+              + 新增群組
             </button>
-          );
-        })}
-        {/* New group inline input */}
-        {showNewGroupInput ? (
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              if (!newGroupName.trim()) return;
-              const group = await api.createGroup(newGroupName.trim());
-              setGroups((prev) => [...prev, group]);
-              setActiveGroupId(group.id);
-              setNewGroupName('');
-              setShowNewGroupInput(false);
-            }}
-            style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 8px' }}
-          >
-            <input
-              autoFocus
-              value={newGroupName}
-              onChange={(e) => setNewGroupName(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Escape') { setShowNewGroupInput(false); setNewGroupName(''); } }}
-              placeholder="群組名稱..."
-              style={{
-                border: '1.5px solid #6366f1', borderRadius: '6px', padding: '4px 8px',
-                fontSize: '12px', outline: 'none', width: '100px',
-              }}
-            />
-            <button type="submit" style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer' }}>
-              建立
-            </button>
-            <button type="button" onClick={() => { setShowNewGroupInput(false); setNewGroupName(''); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '12px', cursor: 'pointer' }}>
-              取消
-            </button>
-          </form>
-        ) : (
-          <button
-            onClick={() => setShowNewGroupInput(true)}
-            style={{
-              padding: '10px 12px', fontSize: '12px', border: 'none', background: 'none',
-              cursor: 'pointer', color: '#94a3b8', whiteSpace: 'nowrap',
-              borderBottom: '2px solid transparent',
-            }}
-          >
-            + 新增群組
-          </button>
-        )}
-        {/* Group algorithm template picker */}
+          )}
+        </div>
+
+        {/* Template picker — outside overflow container so dropdown is not clipped */}
         {activeGroupId && activeGroup && (
-          <div style={{ position: 'relative', marginLeft: 'auto', flexShrink: 0 }}>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
             <button
               onClick={() => setTemplatePickerOpenFor(templatePickerOpenFor === activeGroupId ? null : activeGroupId)}
               style={{
