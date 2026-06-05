@@ -1,0 +1,6 @@
+name = "market-pulse-web"
+compatibility_date = "2024-09-23"
+
+[[services]]
+binding = "API"
+service = "market-pulse-api"
