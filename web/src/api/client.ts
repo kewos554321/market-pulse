@@ -6,14 +6,14 @@ export interface EmailRecipient {
 }
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
-const API_KEY = import.meta.env.VITE_API_KEY ?? '';
+const API_KEY = import.meta.env.VITE_API_KEY;
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      'X-API-Key': API_KEY,
+      ...(API_KEY ? { 'X-API-Key': API_KEY } : {}),
       ...init?.headers,
     },
   });
