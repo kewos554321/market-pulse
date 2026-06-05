@@ -1,10 +1,12 @@
+const API_BASE = 'https://market-pulse-api.kewos554321.workers.dev';
+
 export async function onRequest(context) {
   const url = new URL(context.request.url);
   const apiPath = url.pathname.replace(/^\/api/, '') || '/';
-  const targetUrl = `https://api${apiPath}${url.search}`;
+  const targetUrl = `${API_BASE}${apiPath}${url.search}`;
 
   const hasBody = !['GET', 'HEAD'].includes(context.request.method);
-  return context.env.API.fetch(
+  return fetch(
     new Request(targetUrl, {
       method: context.request.method,
       headers: context.request.headers,
