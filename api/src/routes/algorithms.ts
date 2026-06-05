@@ -7,33 +7,26 @@ algorithmRoutes.get('/:id/algorithm', async (c) => {
   const { id } = c.req.param();
 
   const watchlistRow = await c.env.DB.prepare(
-    'SELECT algorithm_source_group_id FROM watchlist WHERE id = ?'
-  ).bind(id).first<{ algorithm_source_group_id: string | null }>();
+    'SELECT algorithm_template_id FROM watchlist WHERE id = ?'
+  ).bind(id).first<{ algorithm_template_id: string | null }>();
 
   if (!watchlistRow) return c.json({ error: 'Not found' }, 404);
 
-  if (watchlistRow.algorithm_source_group_id) {
-    const groupRow = await c.env.DB.prepare(
-      `SELECT g.id, g.name, g.algorithm_template_id, at.name as template_name, at.conditions
-       FROM groups g
-       LEFT JOIN algorithm_templates at ON g.algorithm_template_id = at.id
-       WHERE g.id = ?`
-    ).bind(watchlistRow.algorithm_source_group_id).first<{
-      id: string; name: string;
-      algorithm_template_id: string | null;
-      template_name: string | null;
-      conditions: string | null;
+  if (watchlistRow.algorithm_template_id) {
+    const tmplRow = await c.env.DB.prepare(
+      'SELECT id, name, conditions FROM algorithm_templates WHERE id = ?'
+    ).bind(watchlistRow.algorithm_template_id).first<{
+      id: string; name: string; conditions: string;
     }>();
 
-    const conditions = groupRow?.conditions
-      ? JSON.parse(groupRow.conditions)
+    const conditions = tmplRow?.conditions
+      ? JSON.parse(tmplRow.conditions)
       : { operator: 'AND', conditions: [] };
 
     return c.json({
-      source: 'group',
-      sourceGroupId: watchlistRow.algorithm_source_group_id,
-      sourceGroupName: groupRow?.name ?? '',
-      templateName: groupRow?.template_name ?? null,
+      source: 'template',
+      templateId: watchlistRow.algorithm_template_id,
+      templateName: tmplRow?.name ?? null,
       conditions,
     });
   }

@@ -9,9 +9,8 @@ export interface WatchlistRow {
   name: string;
   enabled: number;
   asset_type: string;
-  algorithm_source_group_id: string | null;
+  algorithm_template_id: string | null;
   created_at: string;
-  algorithm_source_group_id: string | null;
 }
 
 export interface FxDailyRow {

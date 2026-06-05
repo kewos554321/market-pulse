@@ -20,10 +20,10 @@ describe('GET /watchlist/:id/algorithm', () => {
     expect(res.status).toBe(404);
   });
 
-  it('returns custom algorithm when algorithm_source_group_id is null', async () => {
+  it('returns custom algorithm when algorithm_template_id is null', async () => {
     const app = makeApp();
     const env = makeEnv(mockDB([
-      { first: { algorithm_source_group_id: null } },
+      { first: { algorithm_template_id: null } },
       { first: { id: 'alg-1', watchlist_id: 'stock-1', conditions: JSON.stringify(customConditions), updated_at: '' } },
     ]));
     const res = await req(app, 'GET', '/watchlist/stock-1/algorithm', env);
@@ -33,32 +33,32 @@ describe('GET /watchlist/:id/algorithm', () => {
     expect(body.conditions).toEqual(customConditions);
   });
 
-  it('returns group algorithm with template when stock inherits from group', async () => {
+  it('returns template algorithm when stock has algorithm_template_id', async () => {
     const app = makeApp();
     const templateConditions = { operator: 'AND', conditions: [{ indicator: 'RSI', period: 14, op: '<', value: 35 }] };
     const env = makeEnv(mockDB([
-      { first: { algorithm_source_group_id: 'group-1' } },
-      { first: { id: 'group-1', name: 'AI概念', algorithm_template_id: 'tmpl-1', template_name: '動能型', conditions: JSON.stringify(templateConditions) } },
+      { first: { algorithm_template_id: 'tmpl-1' } },
+      { first: { id: 'tmpl-1', name: '動能型', conditions: JSON.stringify(templateConditions) } },
     ]));
     const res = await req(app, 'GET', '/watchlist/stock-1/algorithm', env);
     expect(res.status).toBe(200);
     const body = await res.json() as Record<string, unknown>;
-    expect(body.source).toBe('group');
-    expect(body.sourceGroupName).toBe('AI概念');
+    expect(body.source).toBe('template');
+    expect(body.templateId).toBe('tmpl-1');
     expect(body.templateName).toBe('動能型');
     expect(body.conditions).toEqual(templateConditions);
   });
 
-  it('returns empty conditions when group has no template', async () => {
+  it('returns empty conditions when linked template not found', async () => {
     const app = makeApp();
     const env = makeEnv(mockDB([
-      { first: { algorithm_source_group_id: 'group-1' } },
-      { first: { id: 'group-1', name: 'AI概念', algorithm_template_id: null, template_name: null, conditions: null } },
+      { first: { algorithm_template_id: 'tmpl-missing' } },
+      { first: null },
     ]));
     const res = await req(app, 'GET', '/watchlist/stock-1/algorithm', env);
     expect(res.status).toBe(200);
     const body = await res.json() as Record<string, unknown>;
-    expect(body.source).toBe('group');
+    expect(body.source).toBe('template');
     expect(body.templateName).toBeNull();
     expect(body.conditions).toEqual(emptyTree);
   });
