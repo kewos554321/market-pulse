@@ -1,15 +1,15 @@
 import { useEffect, useRef } from 'react';
-import type { AlgorithmTemplate, Group } from '../types';
+import type { AlgorithmTemplate } from '../types';
 
 interface Props {
   templates: AlgorithmTemplate[];
-  group: Group;
+  selectedTemplateId?: string | null;
   onSelect: (templateId: string | null) => void;
   onClose: () => void;
   onCreateNew: () => void;
 }
 
-export function AlgorithmTemplatePicker({ templates, group, onSelect, onClose, onCreateNew }: Props) {
+export function AlgorithmTemplatePicker({ templates, selectedTemplateId, onSelect, onClose, onCreateNew }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export function AlgorithmTemplatePicker({ templates, group, onSelect, onClose, o
         選擇算法模板
       </div>
       {templates.map((t) => {
-        const isActive = group.algorithmTemplate?.id === t.id;
+        const isActive = selectedTemplateId === t.id;
         return (
           <div
             key={t.id}
@@ -63,17 +63,14 @@ export function AlgorithmTemplatePicker({ templates, group, onSelect, onClose, o
         >
           + 建立新模板
         </div>
-        {group.algorithmTemplate && (
+        {selectedTemplateId && (
           <div
             onClick={() => { onSelect(null); onClose(); }}
             style={{ padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', color: '#ef4444' }}
           >
-            移除群組預設算法
+            解除連結（改為自訂）
           </div>
         )}
-      </div>
-      <div style={{ padding: '6px 12px', fontSize: '11px', color: '#94a3b8', borderTop: '1px solid #f1f5f9', marginTop: '4px' }}>
-        套用後，「繼承群組」的股票自動更新。已自訂的股票不受影響。
       </div>
     </div>
   );

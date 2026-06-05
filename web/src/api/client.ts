@@ -43,6 +43,11 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify({ conditions }),
     }),
+  setWatchlistAlgorithmTemplate: (watchlistId: string, templateId: string | null) =>
+    request<{ success: boolean }>(`/watchlist/${watchlistId}/algorithm-template`, {
+      method: 'PUT',
+      body: JSON.stringify({ templateId }),
+    }),
   getSignals: (limit = 50, assetType?: string) => {
     const qs = new URLSearchParams({ limit: String(limit) });
     if (assetType) qs.set('asset_type', assetType);
@@ -75,6 +80,11 @@ export const api = {
       body: JSON.stringify({ name }),
     }),
   deleteGroup: (id: string) => request<{ success: boolean }>(`/groups/${id}`, { method: 'DELETE' }),
+  batchApplyTemplate: (groupId: string, templateId: string | null) =>
+    request<{ success: boolean }>(`/groups/${groupId}/batch-apply-template`, {
+      method: 'PUT',
+      body: JSON.stringify({ templateId }),
+    }),
   setWatchlistGroups: (watchlistId: string, groupIds: string[]) =>
     request<{ success: boolean }>(`/watchlist/${watchlistId}/groups`, {
       method: 'PUT',
@@ -94,19 +104,4 @@ export const api = {
     }),
   deleteAlgorithmTemplate: (id: string) =>
     request<{ success: boolean }>(`/algorithm-templates/${id}`, { method: 'DELETE' }),
-  setGroupAlgorithmTemplate: (groupId: string, templateId: string | null) =>
-    request<{ success: boolean }>(`/groups/${groupId}/algorithm-template`, {
-      method: 'PUT',
-      body: JSON.stringify({ templateId }),
-    }),
-  setWatchlistAlgorithmSource: (watchlistId: string, sourceGroupId: string | null) =>
-    request<{ success: boolean }>(`/watchlist/${watchlistId}/algorithm-source`, {
-      method: 'PUT',
-      body: JSON.stringify({ sourceGroupId }),
-    }),
-  addStockWithSource: (symbol: string, name: string, assetType = 'tw_stock', sourceGroupId: string | null = null) =>
-    request<import('../types').WatchlistItem>('/watchlist', {
-      method: 'POST',
-      body: JSON.stringify({ symbol, name, asset_type: assetType, sourceGroupId }),
-    }),
 };

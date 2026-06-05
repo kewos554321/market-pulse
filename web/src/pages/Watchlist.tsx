@@ -18,7 +18,8 @@ export function Watchlist() {
   const [newGroupName, setNewGroupName] = useState('');
   const [showNewGroupInput, setShowNewGroupInput] = useState(false);
   const [templates, setTemplates] = useState<AlgorithmTemplate[]>([]);
-  const [templatePickerOpenFor, setTemplatePickerOpenFor] = useState<string | null>(null);
+  const [batchPickerOpen, setBatchPickerOpen] = useState(false);
+  const [batchApplying, setBatchApplying] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,10 +38,7 @@ export function Watchlist() {
     if (!selected) return;
     setError('');
     try {
-      const item = await api.addStockWithSource(
-        selected.symbol, selected.name, 'tw_stock',
-        activeGroupId ?? null
-      );
+      const item = await api.addStock(selected.symbol, selected.name, 'tw_stock');
       const newItem = { ...item, groups: [] as Group[] };
       if (activeGroupId && activeGroup) {
         await api.setWatchlistGroups(item.id, [activeGroupId]);
@@ -95,14 +93,20 @@ export function Watchlist() {
     if (activeGroupId === groupId) setActiveGroupId(null);
   }
 
-  async function handleSetGroupTemplate(groupId: string, templateId: string | null) {
-    await api.setGroupAlgorithmTemplate(groupId, templateId);
-    const templateObj = templates.find((t) => t.id === templateId) ?? null;
-    setGroups((prev) => prev.map((g) =>
-      g.id === groupId
-        ? { ...g, algorithmTemplate: templateObj ? { id: templateObj.id, name: templateObj.name } : null }
-        : g
-    ));
+  async function handleBatchApplyTemplate(templateId: string | null) {
+    if (!activeGroupId) return;
+    setBatchApplying(true);
+    const tmpl = templates.find((t) => t.id === templateId) ?? null;
+    await api.batchApplyTemplate(activeGroupId, templateId);
+    setItems((prev) => prev.map((item) => {
+      if (!filteredItems.some((f) => f.id === item.id)) return item;
+      return {
+        ...item,
+        algorithm_template_id: templateId,
+        algorithmTemplate: tmpl ? { id: tmpl.id, name: tmpl.name } : null,
+      };
+    }));
+    setBatchApplying(false);
   }
 
   return (
@@ -117,7 +121,6 @@ export function Watchlist() {
         display: 'flex', alignItems: 'center', borderBottom: '1px solid #e2e8f0',
         marginBottom: '16px',
       }}>
-        {/* Scrollable tab strip — overflow contained here, NOT on outer div */}
         <div style={{ display: 'flex', alignItems: 'center', overflowX: 'auto', flex: 1, minWidth: 0 }}>
           <button
             onClick={() => { setActiveGroupId(null); setShowBulkImport(false); }}
@@ -147,21 +150,9 @@ export function Watchlist() {
                 >
                   {g.name}
                 </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleDeleteGroup(g.id); }}
-                  title="刪除群組"
-                  style={{
-                    fontSize: '10px', color: '#cbd5e1', background: 'none', border: 'none',
-                    cursor: 'pointer', padding: '0 6px 0 0', lineHeight: 1,
-                    borderBottom: isActive ? '2px solid #6366f1' : '2px solid transparent',
-                  }}
-                >
-                  ×
-                </button>
               </div>
             );
           })}
-          {/* New group inline input */}
           {showNewGroupInput ? (
             <form
               onSubmit={async (e) => {
@@ -207,25 +198,26 @@ export function Watchlist() {
           )}
         </div>
 
-        {/* Template picker — outside overflow container so dropdown is not clipped */}
+        {/* Batch apply template — only shown when a group is active */}
         {activeGroupId && activeGroup && (
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <button
-              onClick={() => setTemplatePickerOpenFor(templatePickerOpenFor === activeGroupId ? null : activeGroupId)}
+              onClick={() => setBatchPickerOpen((o) => !o)}
+              disabled={batchApplying}
               style={{
                 padding: '6px 12px', margin: '6px 8px', fontSize: '12px', fontWeight: 600,
                 color: '#6366f1', background: '#eff6ff', border: 'none', borderRadius: '8px',
-                cursor: 'pointer', whiteSpace: 'nowrap',
+                cursor: 'pointer', whiteSpace: 'nowrap', opacity: batchApplying ? 0.6 : 1,
               }}
             >
-              ⚙ {activeGroup.algorithmTemplate ? `群組算法：${activeGroup.algorithmTemplate.name} ▾` : '未設預設算法 ▾'}
+              {batchApplying ? '套用中...' : '⚙ 批次套用模板 ▾'}
             </button>
-            {templatePickerOpenFor === activeGroupId && (
+            {batchPickerOpen && (
               <AlgorithmTemplatePicker
                 templates={templates}
-                group={activeGroup}
-                onSelect={(templateId) => handleSetGroupTemplate(activeGroupId, templateId)}
-                onClose={() => setTemplatePickerOpenFor(null)}
+                selectedTemplateId={null}
+                onSelect={(templateId) => { handleBatchApplyTemplate(templateId); }}
+                onClose={() => setBatchPickerOpen(false)}
                 onCreateNew={() => navigate('/algorithm-library')}
               />
             )}
@@ -233,7 +225,7 @@ export function Watchlist() {
         )}
       </div>
 
-      {/* Bulk import */}
+      {/* Bulk import + delete group */}
       {activeGroupId && activeGroup && (
         <div style={{ marginBottom: '8px' }}>
           {showBulkImport ? (
@@ -244,16 +236,28 @@ export function Watchlist() {
               onClose={() => setShowBulkImport(false)}
             />
           ) : (
-            <button
-              onClick={() => setShowBulkImport(true)}
-              style={{
-                background: '#eff6ff', color: '#6366f1', border: 'none',
-                borderRadius: '8px', padding: '7px 14px', fontSize: '12px',
-                fontWeight: 600, cursor: 'pointer', marginBottom: '8px',
-              }}
-            >
-              ↑ 批量匯入到「{activeGroup.name}」
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={() => setShowBulkImport(true)}
+                style={{
+                  background: '#eff6ff', color: '#6366f1', border: 'none',
+                  borderRadius: '8px', padding: '7px 14px', fontSize: '12px',
+                  fontWeight: 600, cursor: 'pointer',
+                }}
+              >
+                ↑ 批量匯入到「{activeGroup.name}」
+              </button>
+              <button
+                onClick={() => handleDeleteGroup(activeGroupId)}
+                style={{
+                  background: 'none', color: '#ef4444', border: '1px solid #fecaca',
+                  borderRadius: '8px', padding: '7px 14px', fontSize: '12px',
+                  fontWeight: 500, cursor: 'pointer',
+                }}
+              >
+                刪除群組
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -329,30 +333,22 @@ export function Watchlist() {
                 </span>
               </div>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                {/* Algorithm source badge */}
-                {(() => {
-                  const srcGroup = item.algorithm_source_group_id
-                    ? groups.find((g) => g.id === item.algorithm_source_group_id)
-                    : null;
-                  if (!srcGroup) {
-                    return (
-                      <span style={{ fontSize: '11px', background: '#f8fafc', color: '#64748b', padding: '2px 10px', borderRadius: '99px', border: '1px solid #e2e8f0' }}>
-                        自訂算法
-                      </span>
-                    );
-                  }
-                  const hasTemplate = !!srcGroup.algorithmTemplate;
-                  return (
-                    <span style={{
-                      fontSize: '11px', padding: '2px 10px', borderRadius: '99px', border: '1px solid',
-                      background: hasTemplate ? '#eff6ff' : '#fffbeb',
-                      color: hasTemplate ? '#6366f1' : '#d97706',
-                      borderColor: hasTemplate ? '#c7d2fe' : '#fde68a',
-                    }}>
-                      繼承：{srcGroup.name}{!hasTemplate ? '（未設模板）' : ''}
-                    </span>
-                  );
-                })()}
+                {/* Algorithm badge */}
+                {item.algorithmTemplate ? (
+                  <span style={{
+                    fontSize: '11px', padding: '2px 10px', borderRadius: '99px', border: '1px solid',
+                    background: '#eff6ff', color: '#6366f1', borderColor: '#c7d2fe',
+                  }}>
+                    模板：{item.algorithmTemplate.name}
+                  </span>
+                ) : (
+                  <span style={{
+                    fontSize: '11px', background: '#f8fafc', color: '#64748b',
+                    padding: '2px 10px', borderRadius: '99px', border: '1px solid #e2e8f0',
+                  }}>
+                    自訂算法
+                  </span>
+                )}
                 <button
                   onClick={() => navigate(`/watchlist/${item.id}/algorithm`)}
                   style={{ background: '#f1f5f9', color: '#374151', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' }}

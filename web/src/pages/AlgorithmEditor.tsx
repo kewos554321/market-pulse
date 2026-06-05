@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { ConditionBuilder } from '../components/ConditionBuilder';
 import { PresetSignalPicker } from '../components/PresetSignalPicker';
+import { AlgorithmTemplatePicker } from '../components/AlgorithmTemplatePicker';
 import { parsePresets } from '../data/signals';
-import type { AlgorithmState, ConditionTree, WatchlistItem } from '../types';
+import type { AlgorithmState, AlgorithmTemplate, ConditionTree, WatchlistItem } from '../types';
 
 const emptyTree: ConditionTree = { operator: 'OR', conditions: [] };
 
@@ -17,10 +18,13 @@ export function AlgorithmEditor() {
   const [mode, setMode] = useState<'preset' | 'advanced'>('preset');
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [templates, setTemplates] = useState<AlgorithmTemplate[]>([]);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     api.getWatchlist().then((list) => setStock(list.find((s) => s.id === id) ?? null));
+    api.getAlgorithmTemplates().then(setTemplates).catch(console.error);
     api.getAlgorithm(id)
       .then((state) => {
         setAlgoState(state);
@@ -38,9 +42,9 @@ export function AlgorithmEditor() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  async function handleSwitchSource(sourceGroupId: string | null) {
+  async function handleSelectTemplate(templateId: string | null) {
     if (!id) return;
-    await api.setWatchlistAlgorithmSource(id, sourceGroupId);
+    await api.setWatchlistAlgorithmTemplate(id, templateId);
     const refreshed = await api.getAlgorithm(id);
     setAlgoState(refreshed);
     if (refreshed.source === 'custom') {
@@ -80,41 +84,44 @@ export function AlgorithmEditor() {
         )}
       </div>
 
-      {/* Source selector */}
-      {stock && stock.groups.length > 0 && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '8px',
-          background: '#f8fafc', border: '1px solid #e2e8f0',
-          borderRadius: '10px', padding: '10px 14px', marginBottom: '16px',
+      {/* Template link selector */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '8px',
+        background: '#f8fafc', border: '1px solid #e2e8f0',
+        borderRadius: '10px', padding: '10px 14px', marginBottom: '16px',
+        position: 'relative',
+      }}>
+        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 500, marginRight: '4px' }}>算法來源：</span>
+        <span style={{
+          fontSize: '12px', fontWeight: 600,
+          color: algoState.source === 'template' ? '#4338ca' : '#374151',
         }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 500, marginRight: '4px' }}>算法來源：</span>
-          {stock.groups.map((g) => (
-            <button
-              key={g.id}
-              onClick={() => handleSwitchSource(g.id)}
-              style={{
-                padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
-                cursor: 'pointer', border: 'none',
-                background: algoState.source === 'group' && algoState.sourceGroupId === g.id ? '#6366f1' : '#f1f5f9',
-                color: algoState.source === 'group' && algoState.sourceGroupId === g.id ? '#fff' : '#374151',
-              }}
-            >
-              繼承 {g.name}
-            </button>
-          ))}
+          {algoState.source === 'template'
+            ? `模板：${algoState.templateName ?? '(未命名)'}`
+            : '自訂'}
+        </span>
+        <div style={{ marginLeft: 'auto', position: 'relative' }}>
           <button
-            onClick={() => handleSwitchSource(null)}
+            onClick={() => setTemplatePickerOpen((o) => !o)}
             style={{
               padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
               cursor: 'pointer', border: 'none',
-              background: algoState.source === 'custom' ? '#6366f1' : '#f1f5f9',
-              color: algoState.source === 'custom' ? '#fff' : '#374151',
+              background: '#f1f5f9', color: '#374151',
             }}
           >
-            自訂
+            連結模板 ▾
           </button>
+          {templatePickerOpen && (
+            <AlgorithmTemplatePicker
+              templates={templates}
+              selectedTemplateId={algoState.templateId}
+              onSelect={handleSelectTemplate}
+              onClose={() => setTemplatePickerOpen(false)}
+              onCreateNew={() => navigate('/algorithm-library')}
+            />
+          )}
         </div>
-      )}
+      </div>
 
       <div style={{
         background: '#fff', borderRadius: '12px', padding: '24px',
@@ -125,33 +132,23 @@ export function AlgorithmEditor() {
           <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
             載入中...
           </div>
-        ) : algoState.source === 'group' ? (
+        ) : algoState.source === 'template' ? (
           <div>
             <div style={{
               background: '#f5f3ff', border: '1px solid #c4b5fd', borderRadius: '10px',
               padding: '12px 16px', marginBottom: '12px',
             }}>
               <div style={{ fontSize: '11px', color: '#7c3aed', fontWeight: 600, marginBottom: '8px' }}>
-                來自「{algoState.sourceGroupName}」預設{algoState.templateName ? `：${algoState.templateName}` : '（尚未設模板）'}
+                模板：{algoState.templateName ?? '(未命名)'}（即時同步）
               </div>
               {algoState.conditions.conditions.length === 0 ? (
-                <div style={{ fontSize: '12px', color: '#94a3b8' }}>此群組尚未設定算法模板</div>
+                <div style={{ fontSize: '12px', color: '#94a3b8' }}>此模板尚未設定條件</div>
               ) : (
                 <pre style={{ margin: 0, fontSize: '12px', color: '#4338ca', fontFamily: 'monospace' }}>
                   {JSON.stringify(algoState.conditions, null, 2)}
                 </pre>
               )}
             </div>
-            <button
-              onClick={() => handleSwitchSource(null)}
-              style={{
-                fontSize: '12px', color: '#6366f1', background: 'none',
-                border: '1px solid #6366f1', borderRadius: '6px',
-                padding: '6px 14px', cursor: 'pointer',
-              }}
-            >
-              覆蓋為自訂 →
-            </button>
           </div>
         ) : mode === 'preset' ? (
           <PresetSignalPicker value={conditions} onChange={setConditions} />

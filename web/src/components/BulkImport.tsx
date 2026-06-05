@@ -64,7 +64,7 @@ export function BulkImport({ activeGroup, existingItems, onComplete, onClose }: 
         const currentGroupIds = item.groups.map((g) => g.id);
         if (!currentGroupIds.includes(activeGroup.id)) {
           await api.setWatchlistGroups(watchlistId, [...currentGroupIds, activeGroup.id]);
-          item.groups = [...item.groups, { id: activeGroup.id, name: activeGroup.name, algorithmTemplate: null }];
+          item.groups = [...item.groups, { id: activeGroup.id, name: activeGroup.name }];
         }
       }
     }
