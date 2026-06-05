@@ -4,3 +4,4 @@ dist
 api/.dev.vars
 web/.env
 scheduler/.env
+.DS_Store
