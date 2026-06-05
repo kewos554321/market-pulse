@@ -12,6 +12,7 @@ import { emailRecipientsRoutes } from './routes/emailRecipients';
 import { lineWebhookRoutes } from './routes/lineWebhook';
 import { groupRoutes } from './routes/groups';
 import { fxDailyRoutes } from './routes/fx-daily';
+import { algorithmTemplateRoutes } from './routes/algorithm-templates';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -27,6 +28,7 @@ app.route('/recommendations', recommendationsRoutes);
 app.route('/email-recipients', emailRecipientsRoutes);
 app.route('/line', lineWebhookRoutes);
 app.route('/groups', groupRoutes);
+app.route('/algorithm-templates', algorithmTemplateRoutes);
 app.route('/fx-daily', fxDailyRoutes);
 
 export default app;
