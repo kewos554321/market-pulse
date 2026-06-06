@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Market Pulse</title>
     <style>
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      html, body, #root { height: 100%; }
-      body { background: #f8fafc; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+      @layer base {
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body, #root { height: 100%; }
+        body { background: #f8fafc; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+      }
     </style>
   </head>
   <body>
