@@ -249,7 +249,15 @@ export function WatchlistNew() {
               {selected.symbol} {selected.name}
             </span>
           )}
-          <Button type="submit" disabled={!selected}>新增</Button>
+          <button
+            type="submit"
+            disabled={!selected}
+            className={`px-5 py-[10px] text-[13px] font-semibold rounded-[8px] border-0 whitespace-nowrap ${
+              selected
+                ? 'bg-indigo-500 text-white cursor-pointer'
+                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+            }`}
+          >新增</button>
         </form>
         {error && <p className="text-red-500 text-[13px] mt-2 mb-0">{error}</p>}
       </div>
