@@ -46,6 +46,7 @@ export interface SignalSummary {
   name: string;
   closePrice: number;
   triggeredConditions: string[];
+  groups: string[];
 }
 
 export async function sendSignalEmail(
@@ -62,7 +63,8 @@ export async function sendSignalEmail(
       <li style="margin-bottom:12px">
         <strong>${s.symbol} ${s.name}</strong><br/>
         收盤價：${s.closePrice}<br/>
-        觸發條件：${s.triggeredConditions.join(', ')}
+        ${s.groups.length > 0 ? `群組：${s.groups.join('、')}<br/>` : ''}
+        觸發條件：${s.triggeredConditions.join('、')}
       </li>`
     )
     .join('');
