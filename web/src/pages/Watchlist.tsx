@@ -22,12 +22,16 @@ export function Watchlist() {
   const [templates, setTemplates] = useState<AlgorithmTemplate[]>([]);
   const [batchPickerOpen, setBatchPickerOpen] = useState(false);
   const [batchApplying, setBatchApplying] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [confirmDeleteGroupId, setConfirmDeleteGroupId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.getWatchlist('tw_stock').then(setItems).catch(console.error);
-    api.getGroups().then(setGroups).catch(console.error);
-    api.getAlgorithmTemplates().then(setTemplates).catch(console.error);
+    Promise.all([
+      api.getWatchlist('tw_stock').then(setItems),
+      api.getGroups().then(setGroups),
+      api.getAlgorithmTemplates().then(setTemplates),
+    ]).catch(console.error).finally(() => setIsLoading(false));
   }, []);
 
   const activeGroup = groups.find((g) => g.id === activeGroupId) ?? null;
@@ -50,6 +54,7 @@ export function Watchlist() {
   // 切換群組時重置，讓新群組重新量測
   useEffect(() => {
     setListMinHeight(0);
+    setConfirmDeleteGroupId(null);
   }, [activeGroupId]);
 
   async function handleAdd(e: React.FormEvent) {
@@ -136,6 +141,16 @@ export function Watchlist() {
       };
     }));
     setBatchApplying(false);
+  }
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', gap: '12px' }}>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <div style={{ width: '24px', height: '24px', border: '2px solid #e2e8f0', borderTop: '2px solid #6366f1', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+        <span style={{ fontSize: '13px', color: '#94a3b8' }}>載入中...</span>
+      </div>
+    );
   }
 
   return (
@@ -276,16 +291,37 @@ export function Watchlist() {
               >
                 ↑ 批量匯入到「{activeGroup.name}」
               </button>
-              <button
-                onClick={() => handleDeleteGroup(activeGroupId)}
-                style={{
-                  background: 'none', color: '#ef4444', border: '1px solid #fecaca',
-                  borderRadius: '8px', padding: '7px 14px', fontSize: '12px',
-                  fontWeight: 500, cursor: 'pointer',
-                }}
-              >
-                刪除群組
-              </button>
+              {confirmDeleteGroupId === activeGroupId ? (
+                <>
+                  <span style={{ fontSize: '12px', color: '#374151' }}>
+                    確定刪除「{activeGroup.name}」？
+                    <span style={{ color: '#94a3b8' }}> 只屬於此群組的標的也會一起刪除</span>
+                  </span>
+                  <button
+                    onClick={() => { handleDeleteGroup(activeGroupId); setConfirmDeleteGroupId(null); }}
+                    style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', padding: '5px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    確定刪除
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteGroupId(null)}
+                    style={{ background: 'none', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '5px 12px', fontSize: '12px', cursor: 'pointer' }}
+                  >
+                    取消
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setConfirmDeleteGroupId(activeGroupId)}
+                  style={{
+                    background: 'none', color: '#ef4444', border: '1px solid #fecaca',
+                    borderRadius: '8px', padding: '7px 14px', fontSize: '12px',
+                    fontWeight: 500, cursor: 'pointer',
+                  }}
+                >
+                  刪除群組
+                </button>
+              )}
             </div>
           )}
         </div>
