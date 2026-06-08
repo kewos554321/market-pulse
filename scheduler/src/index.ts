@@ -114,19 +114,23 @@ async function runWatchlistScan(
     });
 
     if (notifyEmails.length > 0) {
-      await sendSignalEmail(
-        RESEND_API_KEY,
-        notifyEmails,
-        today,
-        triggeredSignals.map((s) => ({
-          symbol: s.symbol,
-          name: s.name,
-          closePrice: s.close_price,
-          triggeredConditions: s.triggeredConditions,
-          groups: s.groups,
-        }))
-      );
-      console.log(`✉️  Sent email to ${notifyEmails.length} recipients with ${triggeredSignals.length} signals`);
+      try {
+        await sendSignalEmail(
+          RESEND_API_KEY,
+          notifyEmails,
+          today,
+          triggeredSignals.map((s) => ({
+            symbol: s.symbol,
+            name: s.name,
+            closePrice: s.close_price,
+            triggeredConditions: s.triggeredConditions,
+            groups: s.groups,
+          }))
+        );
+        console.log(`✉️  Sent email to ${notifyEmails.length} recipients with ${triggeredSignals.length} signals`);
+      } catch (err) {
+        console.error('Email send failed:', err);
+      }
     }
 
     const lineToken = settings.line_channel_access_token;
