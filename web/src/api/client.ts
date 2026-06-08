@@ -79,7 +79,7 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ name }),
     }),
-  deleteGroup: (id: string) => request<{ success: boolean }>(`/groups/${id}`, { method: 'DELETE' }),
+  deleteGroup: (id: string) => request<{ success: boolean; deletedWatchlistIds: string[] }>(`/groups/${id}`, { method: 'DELETE' }),
   batchApplyTemplate: (groupId: string, templateId: string | null) =>
     request<{ success: boolean }>(`/groups/${groupId}/batch-apply-template`, {
       method: 'PUT',

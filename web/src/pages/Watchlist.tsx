@@ -107,8 +107,9 @@ export function Watchlist() {
   }
 
   async function handleDeleteGroup(groupId: string) {
-    await api.deleteGroup(groupId);
+    const { deletedWatchlistIds } = await api.deleteGroup(groupId);
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
+    setItems((prev) => prev.filter((i) => !deletedWatchlistIds.includes(i.id)));
     if (activeGroupId === groupId) setActiveGroupId(null);
   }
 
