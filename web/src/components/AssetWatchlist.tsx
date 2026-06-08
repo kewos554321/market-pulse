@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { AssetSearch } from './AssetSearch';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import type { WatchlistItem } from '../types';
 
 type AssetType = 'tw_stock' | 'us_stock' | 'crypto' | 'fx';
@@ -19,9 +23,7 @@ export function AssetWatchlist({ assetType, label, description }: Props) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.getWatchlist(assetType)
-      .then(setItems)
-      .catch(console.error);
+    api.getWatchlist(assetType).then(setItems).catch(console.error);
   }, [assetType]);
 
   async function handleAdd(e: React.FormEvent) {
@@ -51,101 +53,61 @@ export function AssetWatchlist({ assetType, label, description }: Props) {
 
   return (
     <div>
-      <div style={{ marginBottom: '20px' }}>
-        <h1 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>追蹤清單</h1>
-        <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>{description}</p>
+      <div className="mb-5">
+        <h1 className="text-xl font-bold text-foreground mb-1">追蹤清單</h1>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
 
-      <div style={{
-        background: '#fff', borderRadius: '12px', padding: '16px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.06)', border: '1px solid #e2e8f0', marginBottom: '20px',
-      }}>
-        <div style={{ fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>新增{label}</div>
-        <form onSubmit={handleAdd} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-          <AssetSearch assetType={assetType} onSelect={(symbol, name) => setSelected({ symbol, name })} />
-          {selected && (
-            <span style={{
-              alignSelf: 'center', fontSize: '12px', color: '#6366f1',
-              background: '#eff6ff', padding: '4px 10px', borderRadius: '99px', whiteSpace: 'nowrap',
-            }}>
-              {selected.symbol} {selected.name}
-            </span>
-          )}
-          <button
-            type="submit"
-            disabled={!selected}
-            style={{
-              background: selected ? '#6366f1' : '#e2e8f0',
-              color: selected ? '#fff' : '#94a3b8',
-              border: 'none', borderRadius: '8px', padding: '10px 20px',
-              fontSize: '13px', fontWeight: 600, cursor: selected ? 'pointer' : 'not-allowed',
-              whiteSpace: 'nowrap', transition: 'background 0.15s',
-            }}
-          >
-            新增
-          </button>
-        </form>
-        {error && <p style={{ color: '#ef4444', fontSize: '13px', margin: '8px 0 0' }}>{error}</p>}
-      </div>
+      <Card className="mb-5">
+        <CardContent className="pt-5">
+          <p className="text-xs font-semibold text-foreground mb-2">新增{label}</p>
+          <form onSubmit={handleAdd} className="flex gap-2 items-start">
+            <AssetSearch assetType={assetType} onSelect={(symbol, name) => setSelected({ symbol, name })} />
+            {selected && (
+              <Badge variant="secondary" className="self-center whitespace-nowrap shrink-0">
+                {selected.symbol} {selected.name}
+              </Badge>
+            )}
+            <Button type="submit" disabled={!selected} className="shrink-0">
+              新增
+            </Button>
+          </form>
+          {error && <p className="text-destructive text-[13px] mt-2">{error}</p>}
+        </CardContent>
+      </Card>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div className="flex flex-col gap-2.5">
         {items.length === 0 && (
-          <div style={{
-            background: '#fff', borderRadius: '12px', padding: '32px',
-            textAlign: 'center', color: '#94a3b8', fontSize: '14px',
-            border: '1px solid #e2e8f0',
-          }}>
-            還沒有追蹤的項目，從上方搜尋新增吧
-          </div>
+          <Card>
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              還沒有追蹤的項目，從上方搜尋新增吧
+            </CardContent>
+          </Card>
         )}
         {items.map((item) => (
-          <div
-            key={item.id}
-            style={{
-              background: '#fff', borderRadius: '12px', padding: '16px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.06)', border: '1px solid #e2e8f0',
-              display: 'flex', alignItems: 'center', gap: '16px',
-              opacity: item.enabled ? 1 : 0.6, transition: 'opacity 0.15s',
-            }}
-          >
-            <div style={{
-              width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
-              background: item.enabled ? '#10b981' : '#d1d5db',
-            }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '14px' }}>{item.symbol}</span>
-                <span style={{ color: '#475569', fontSize: '14px' }}>{item.name}</span>
-                <span style={{
-                  fontSize: '11px', padding: '2px 8px', borderRadius: '99px', fontWeight: 500,
-                  background: item.enabled ? '#dcfce7' : '#f1f5f9',
-                  color: item.enabled ? '#166534' : '#64748b',
-                }}>
+          <Card key={item.id} className={cn('transition-opacity', item.enabled ? 'opacity-100' : 'opacity-60')}>
+            <CardContent className="flex items-center gap-4">
+              <div className={cn('w-2 h-2 rounded-full shrink-0', item.enabled ? 'bg-emerald-500' : 'bg-muted-foreground')} />
+              <div className="flex-1 flex items-center gap-2">
+                <span className="font-bold text-foreground text-sm">{item.symbol}</span>
+                <span className="text-muted-foreground text-sm">{item.name}</span>
+                <Badge variant={item.enabled ? 'default' : 'secondary'} className="text-[11px]">
                   {item.enabled ? '追蹤中' : '已暫停'}
-                </span>
+                </Badge>
               </div>
-            </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => navigate(`/watchlist/${item.id}/algorithm`)}
-                style={{ background: '#f1f5f9', color: '#374151', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' }}
-              >
-                設定算法
-              </button>
-              <button
-                onClick={() => handleToggle(item)}
-                style={{ background: '#f1f5f9', color: '#374151', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' }}
-              >
-                {item.enabled ? '暫停' : '啟用'}
-              </button>
-              <button
-                onClick={() => handleDelete(item.id)}
-                style={{ background: '#fff0f0', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' }}
-              >
-                刪除
-              </button>
-            </div>
-          </div>
+              <div className="flex gap-2">
+                <Button variant="secondary" size="sm" onClick={() => navigate(`/watchlist/${item.id}/algorithm`)}>
+                  設定算法
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => handleToggle(item)}>
+                  {item.enabled ? '暫停' : '啟用'}
+                </Button>
+                <Button variant="destructive" size="sm" onClick={() => handleDelete(item.id)}>
+                  刪除
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>
