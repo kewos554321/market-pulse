@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { Pager } from '../components/Pager';
+import { usePagination } from '../lib/usePagination';
 import { api } from '../api/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,6 +24,8 @@ export function AlgorithmLibrary() {
   useEffect(() => {
     api.getAlgorithmTemplates().then(setTemplates).catch(console.error);
   }, []);
+
+  const { page, setPage, pageItems: pageTemplates, totalPages } = usePagination(templates, 10);
 
   function startNew() {
     setEditing(null);
@@ -69,7 +73,7 @@ export function AlgorithmLibrary() {
       </div>
 
       <div className="flex flex-col gap-2.5 mb-4">
-        {templates.map((t) => (
+        {pageTemplates.map((t) => (
           <Card key={t.id}>
             <CardContent className="flex items-center gap-3">
               <div className="flex-1">
@@ -91,6 +95,8 @@ export function AlgorithmLibrary() {
           </Card>
         )}
       </div>
+
+      <Pager page={page} totalPages={totalPages} onPageChange={setPage} className="mb-4" />
 
       {!showForm && (
         <Button onClick={startNew}>+ 新增模板</Button>

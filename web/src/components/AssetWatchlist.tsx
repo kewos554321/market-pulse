@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { AssetSearch } from './AssetSearch';
@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { Pager } from './Pager';
+import { usePagination } from '../lib/usePagination';
 import type { WatchlistItem } from '../types';
 
 type AssetType = 'tw_stock' | 'us_stock' | 'crypto' | 'fx';
@@ -24,6 +26,23 @@ export function AssetWatchlist({ assetType, label, description }: Props) {
 
   useEffect(() => {
     api.getWatchlist(assetType).then(setItems).catch(console.error);
+  }, [assetType]);
+
+  const { page, setPage, pageItems, totalPages } = usePagination(items, 10);
+
+  const listRef = useRef<HTMLDivElement>(null);
+  const [listMinHeight, setListMinHeight] = useState(0);
+
+  useEffect(() => {
+    if (listRef.current) {
+      const h = listRef.current.scrollHeight;
+      setListMinHeight((prev) => Math.max(prev, h));
+    }
+  }, [pageItems]);
+
+  useEffect(() => {
+    setPage(1);
+    setListMinHeight(0);
   }, [assetType]);
 
   async function handleAdd(e: React.FormEvent) {
@@ -76,7 +95,7 @@ export function AssetWatchlist({ assetType, label, description }: Props) {
         </CardContent>
       </Card>
 
-      <div className="flex flex-col gap-2.5">
+      <div ref={listRef} className="flex flex-col gap-2.5" style={{ minHeight: listMinHeight || undefined }}>
         {items.length === 0 && (
           <Card>
             <CardContent className="py-8 text-center text-sm text-muted-foreground">
@@ -84,7 +103,7 @@ export function AssetWatchlist({ assetType, label, description }: Props) {
             </CardContent>
           </Card>
         )}
-        {items.map((item) => (
+        {pageItems.map((item) => (
           <Card key={item.id} className={cn('transition-opacity', item.enabled ? 'opacity-100' : 'opacity-60')}>
             <CardContent className="flex items-center gap-4">
               <div className={cn('w-2 h-2 rounded-full shrink-0', item.enabled ? 'bg-emerald-500' : 'bg-muted-foreground')} />
@@ -110,6 +129,8 @@ export function AssetWatchlist({ assetType, label, description }: Props) {
           </Card>
         ))}
       </div>
+
+      <Pager page={page} totalPages={totalPages} onPageChange={setPage} className="mt-4" />
     </div>
   );
 }

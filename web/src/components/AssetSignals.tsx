@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Pager } from './Pager';
+import { usePagination } from '../lib/usePagination';
 import type { Signal } from '../types';
 
 type AssetType = 'tw_stock' | 'us_stock' | 'crypto' | 'fx';
@@ -17,20 +19,37 @@ export function AssetSignals({ assetType }: Props) {
     api.getSignals(100, assetType).then(setSignals).catch(console.error);
   }, [assetType]);
 
+  const { page, setPage, pageItems, totalPages } = usePagination(signals, 20);
+
+  const listRef = useRef<HTMLDivElement>(null);
+  const [listMinHeight, setListMinHeight] = useState(0);
+
+  useEffect(() => {
+    if (listRef.current) {
+      const h = listRef.current.scrollHeight;
+      setListMinHeight((prev) => Math.max(prev, h));
+    }
+  }, [pageItems]);
+
+  useEffect(() => {
+    setPage(1);
+    setListMinHeight(0);
+  }, [assetType]);
+
   return (
     <div>
       <div className="mb-5">
         <h1 className="text-xl font-bold text-foreground mb-1">訊號歷史</h1>
         <p className="text-sm text-muted-foreground">系統觸發過的買賣訊號紀錄</p>
       </div>
-      <div className="flex flex-col gap-2.5">
+      <div ref={listRef} className="flex flex-col gap-2.5" style={{ minHeight: listMinHeight || undefined }}>
         {signals.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-sm text-muted-foreground">
               目前沒有觸發訊號
             </CardContent>
           </Card>
-        ) : signals.map((s) => (
+        ) : pageItems.map((s) => (
           <Card key={s.id}>
             <CardContent className="flex items-center gap-4">
               <div className="flex-1">
@@ -49,6 +68,8 @@ export function AssetSignals({ assetType }: Props) {
           </Card>
         ))}
       </div>
+
+      <Pager page={page} totalPages={totalPages} onPageChange={setPage} className="mt-4" />
     </div>
   );
 }
