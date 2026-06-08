@@ -1,3 +1,5 @@
+export type AssetType = 'tw_stock' | 'us_stock' | 'crypto' | 'fx';
+
 export interface AlgorithmTemplate {
   id: string;
   name: string;
