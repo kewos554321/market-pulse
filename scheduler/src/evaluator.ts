@@ -125,3 +125,15 @@ export function evaluateConditionTree(condition: Condition, indicators: Indicato
   }
   return evaluateLeaf(condition, indicators);
 }
+
+export function collectTriggeredLeaves(condition: Condition, indicators: IndicatorValues): ConditionLeaf[] {
+  if (isTree(condition)) {
+    if (condition.operator === 'AND') {
+      return condition.conditions.flatMap((c) => collectTriggeredLeaves(c, indicators));
+    }
+    return condition.conditions
+      .filter((c) => evaluateConditionTree(c, indicators))
+      .flatMap((c) => collectTriggeredLeaves(c, indicators));
+  }
+  return evaluateLeaf(condition, indicators) ? [condition] : [];
+}

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { calculateIndicators } from './indicators.js';
-import { evaluateConditionTree } from './evaluator.js';
-import { sendSignalEmail, describeConditionTree } from './notify.js';
+import { evaluateConditionTree, collectTriggeredLeaves } from './evaluator.js';
+import { sendSignalEmail, describeLeaf } from './notify.js';
 import { sendLineGroupMessage } from './line.js';
 import { BUILT_IN_STRATEGIES } from './strategies.js';
 import { TwStockFetcher } from './fetchers/tw-stock.js';
@@ -98,7 +98,7 @@ async function runWatchlistScan(
           conditions_snapshot: algo.conditions,
           name: item.name,
           groups: item.groups.map((g) => g.name),
-          triggeredConditions: describeConditionTree(algo.conditions),
+          triggeredConditions: collectTriggeredLeaves(algo.conditions, indicators).map(describeLeaf),
         });
       } else {
         console.log(`⬜ ${item.symbol}: conditions not met`);

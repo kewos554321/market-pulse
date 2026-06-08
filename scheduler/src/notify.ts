@@ -7,7 +7,7 @@ function isTree(c: Condition): c is ConditionTree {
   return 'operator' in c;
 }
 
-function describeLeaf(c: ConditionLeaf): string {
+export function describeLeaf(c: ConditionLeaf): string {
   switch (c.indicator) {
     case 'RSI':
       return `RSI(14) ${c.op} ${c.value}`;
