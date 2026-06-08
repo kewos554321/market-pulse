@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { AssetSearch } from './AssetSearch';
@@ -8,9 +8,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Pager } from './Pager';
 import { usePagination } from '../lib/usePagination';
-import type { WatchlistItem } from '../types';
-
-type AssetType = 'tw_stock' | 'us_stock' | 'crypto' | 'fx';
+import { useStableListHeight } from '../lib/useStableListHeight';
+import type { AssetType, WatchlistItem } from '../types';
 
 interface Props {
   assetType: AssetType;
@@ -29,20 +28,11 @@ export function AssetWatchlist({ assetType, label, description }: Props) {
   }, [assetType]);
 
   const { page, setPage, pageItems, totalPages } = usePagination(items, 10);
-
-  const listRef = useRef<HTMLDivElement>(null);
-  const [listMinHeight, setListMinHeight] = useState(0);
-
-  useEffect(() => {
-    if (listRef.current) {
-      const h = listRef.current.scrollHeight;
-      setListMinHeight((prev) => Math.max(prev, h));
-    }
-  }, [pageItems]);
+  const { listRef, listMinHeight, resetHeight } = useStableListHeight(pageItems);
 
   useEffect(() => {
     setPage(1);
-    setListMinHeight(0);
+    resetHeight();
   }, [assetType]);
 
   async function handleAdd(e: React.FormEvent) {
