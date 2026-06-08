@@ -1,4 +1,45 @@
 import { Resend } from 'resend';
+import type { ConditionLeaf, ConditionTree } from './types.js';
+
+type Condition = ConditionLeaf | ConditionTree;
+
+function isTree(c: Condition): c is ConditionTree {
+  return 'operator' in c;
+}
+
+function describeLeaf(c: ConditionLeaf): string {
+  switch (c.indicator) {
+    case 'RSI':
+      return `RSI(14) ${c.op} ${c.value}`;
+    case 'CLOSE':
+      if (c.ref === 'MA') return `收盤 ${c.op} MA${c.period ?? 20}`;
+      return `收盤 ${c.op} ${c.value}`;
+    case 'MA':
+      return `MA${c.period ?? 20} ${c.op} ${c.value}`;
+    case 'VOLUME':
+      if (c.ref === 'MA_VOLUME') return `成交量 ${c.op} 均量×${c.multiplier ?? 1}`;
+      return `成交量 ${c.op} ${c.value}`;
+    case 'MACD_CROSS':
+      return c.direction === 'golden' ? 'MACD 黃金交叉' : 'MACD 死亡交叉';
+    case 'KD_CROSS':
+      return c.direction === 'golden' ? 'KD 黃金交叉' : 'KD 死亡交叉';
+    case 'MA_CROSS':
+      return c.direction === 'golden' ? 'MA5/20 黃金交叉' : 'MA5/20 死亡交叉';
+    case 'BB_LOWER':
+      return '收盤 ≤ 布林下軌';
+    case 'BB_UPPER':
+      return '收盤 ≥ 布林上軌';
+    default:
+      return (c as ConditionLeaf).indicator;
+  }
+}
+
+export function describeConditionTree(condition: Condition): string[] {
+  if (isTree(condition)) {
+    return condition.conditions.flatMap((c) => describeConditionTree(c));
+  }
+  return [describeLeaf(condition)];
+}
 
 export interface SignalSummary {
   symbol: string;
