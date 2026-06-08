@@ -1,24 +1,10 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import type { EmailRecipient } from '../api/client';
-
-const cardStyle: React.CSSProperties = {
-  background: '#fff', borderRadius: '12px', padding: '24px',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.06)', border: '1px solid #e2e8f0',
-  maxWidth: '480px',
-};
-
-const inputStyle: React.CSSProperties = {
-  border: '1.5px solid #e2e8f0', borderRadius: '8px',
-  padding: '9px 12px', fontSize: '13px', color: '#1e293b',
-  outline: 'none', boxSizing: 'border-box',
-};
-
-const btnStyle: React.CSSProperties = {
-  background: '#6366f1', color: '#fff', border: 'none',
-  borderRadius: '8px', padding: '9px 16px',
-  fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-};
 
 export function Settings() {
   const [enabled, setEnabled] = useState(true);
@@ -49,7 +35,6 @@ export function Settings() {
       .then(setRecipients)
       .catch(console.error)
       .finally(() => setRecipientsLoading(false));
-
   }, []);
 
   async function handleSaveSchedule(e: React.FormEvent) {
@@ -98,155 +83,151 @@ export function Settings() {
 
   return (
     <div>
-      <div style={{ marginBottom: '20px' }}>
-        <h1 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>設定</h1>
-        <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>通知和排程設定</p>
+      <div className="mb-5">
+        <h1 className="text-xl font-bold text-foreground mb-1">設定</h1>
+        <p className="text-sm text-muted-foreground">通知和排程設定</p>
       </div>
 
-      {/* Schedule settings */}
-      <div style={cardStyle}>
-        <form onSubmit={handleSaveSchedule} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+      <Card className="max-w-[480px]">
+        <CardContent className="pt-5">
+          <form onSubmit={handleSaveSchedule} className="flex flex-col gap-5">
+            <label className="flex items-center gap-2.5 cursor-pointer">
               <input
                 type="checkbox"
                 checked={enabled}
                 onChange={(e) => setEnabled(e.target.checked)}
-                style={{ width: '16px', height: '16px', accentColor: '#6366f1' }}
+                className="w-4 h-4 accent-primary"
               />
               <div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>啟用每日排程</div>
-                <div style={{ fontSize: '12px', color: '#94a3b8' }}>每週一到五 14:35 台北時間自動執行</div>
+                <div className="text-[13px] font-semibold text-foreground">啟用每日排程</div>
+                <div className="text-xs text-muted-foreground">每週一到五 14:35 台北時間自動執行</div>
               </div>
             </label>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button type="submit" style={btnStyle}>儲存設定</button>
-            {scheduleSaved && (
-              <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 500 }}>已儲存 ✓</span>
+            <div className="flex items-center gap-3">
+              <Button type="submit">儲存設定</Button>
+              {scheduleSaved && (
+                <span className="text-[13px] text-emerald-600 font-medium">已儲存 ✓</span>
+              )}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <div className="mt-8 mb-3">
+        <h2 className="text-base font-bold text-foreground mb-1">Email 收件人</h2>
+        <p className="text-sm text-muted-foreground">每日訊號通知的收件人清單</p>
+      </div>
+
+      <Card className="max-w-[560px]">
+        <CardContent className="pt-5">
+          <form onSubmit={handleAddRecipient} className="flex gap-2 mb-4 flex-wrap items-center">
+            <Input
+              type="email"
+              placeholder="email@example.com"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              className="w-48"
+              required
+            />
+            <Input
+              type="text"
+              placeholder="備註（選填）"
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              className="w-28"
+            />
+            <Button type="submit">新增</Button>
+            {emailError && (
+              <span className="text-xs text-destructive self-center">{emailError}</span>
             )}
-          </div>
-        </form>
-      </div>
+          </form>
 
-      {/* Email recipients */}
-      <div style={{ marginTop: '32px', marginBottom: '12px' }}>
-        <h2 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>Email 收件人</h2>
-        <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>每日訊號通知的收件人清單</p>
-      </div>
-
-      <div style={{ ...cardStyle, maxWidth: '560px' }}>
-        <form onSubmit={handleAddRecipient} style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-          <input
-            type="email"
-            placeholder="email@example.com"
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-            style={{ ...inputStyle, width: '200px' }}
-            required
-          />
-          <input
-            type="text"
-            placeholder="備註（選填）"
-            value={newLabel}
-            onChange={(e) => setNewLabel(e.target.value)}
-            style={{ ...inputStyle, width: '120px' }}
-          />
-          <button type="submit" style={btnStyle}>新增</button>
-          {emailError && (
-            <span style={{ fontSize: '12px', color: '#ef4444', alignSelf: 'center' }}>{emailError}</span>
-          )}
-        </form>
-
-        {recipientsLoading ? (
-          <p style={{ fontSize: '13px', color: '#94a3b8' }}>載入中...</p>
-        ) : recipients.length === 0 ? (
-          <p style={{ fontSize: '13px', color: '#94a3b8' }}>尚無收件人</p>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1.5px solid #e2e8f0' }}>
-                {['Email', '備註', ''].map((h) => (
-                  <th key={h} style={{ padding: '8px 10px', fontSize: '12px', fontWeight: 600, color: '#64748b', textAlign: 'left' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {recipients.map((r) => (
-                <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '8px 10px', fontSize: '13px', color: '#0f172a' }}>{r.email}</td>
-                  <td style={{ padding: '8px 10px', fontSize: '13px', color: '#64748b' }}>{r.label ?? '—'}</td>
-                  <td style={{ padding: '8px 10px' }}>
-                    <button
-                      onClick={() => handleDeleteRecipient(r.id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#ef4444', padding: '2px 8px' }}
-                    >
-                      移除
-                    </button>
-                  </td>
+          {recipientsLoading ? (
+            <p className="text-sm text-muted-foreground">載入中...</p>
+          ) : recipients.length === 0 ? (
+            <p className="text-sm text-muted-foreground">尚無收件人</p>
+          ) : (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b-2 border-border">
+                  {['Email', '備註', ''].map((h) => (
+                    <th key={h} className="px-2.5 py-2 text-xs font-semibold text-muted-foreground text-left">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+              </thead>
+              <tbody>
+                {recipients.map((r) => (
+                  <tr key={r.id} className="border-b border-border/50">
+                    <td className="px-2.5 py-2 text-[13px] text-foreground">{r.email}</td>
+                    <td className="px-2.5 py-2 text-[13px] text-muted-foreground">{r.label ?? '—'}</td>
+                    <td className="px-2.5 py-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => handleDeleteRecipient(r.id)}
+                      >
+                        移除
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* LINE notification */}
-      <div style={{ marginTop: '32px', marginBottom: '12px' }}>
-        <h2 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>LINE 通知</h2>
-        <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+      <div className="mt-8 mb-3">
+        <h2 className="text-base font-bold text-foreground mb-1">LINE 通知</h2>
+        <p className="text-sm text-muted-foreground">
           將 Bot 加入群組後 Group ID 將自動填入。
-          Webhook URL：<code style={{ fontSize: '12px', background: '#f1f5f9', padding: '1px 4px', borderRadius: '4px' }}>https://&lt;workers-domain&gt;/line/webhook</code>
+          Webhook URL：<code className="text-xs bg-muted px-1 py-0.5 rounded">https://&lt;workers-domain&gt;/line/webhook</code>
         </p>
       </div>
 
-      <div style={{ ...cardStyle, maxWidth: '480px' }}>
-        <form onSubmit={handleSaveLine} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-              Channel Access Token
-            </label>
-            <input
-              type="password"
-              value={lineToken}
-              onChange={(e) => setLineToken(e.target.value)}
-              placeholder={lineTokenSet ? '已設定（留空保持不變）' : '貼上 Channel Access Token'}
-              style={{ ...inputStyle, width: '100%' }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-              Channel Secret
-            </label>
-            <input
-              type="password"
-              value={lineSecret}
-              onChange={(e) => setLineSecret(e.target.value)}
-              placeholder={lineSecretSet ? '已設定（留空保持不變）' : '貼上 Channel Secret（用於驗證 webhook）'}
-              style={{ ...inputStyle, width: '100%' }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-              Group ID
-            </label>
-            <input
-              type="text"
-              value={lineGroupId}
-              onChange={(e) => setLineGroupId(e.target.value)}
-              placeholder="Bot 加入群組後自動填入，或手動輸入"
-              style={{ ...inputStyle, width: '100%' }}
-            />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button type="submit" style={btnStyle}>儲存 LINE 設定</button>
-            {lineSaved && (
-              <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 500 }}>已儲存 ✓</span>
-            )}
-          </div>
-        </form>
-      </div>
-
+      <Card className="max-w-[480px]">
+        <CardContent className="pt-5">
+          <form onSubmit={handleSaveLine} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="line-token">Channel Access Token</Label>
+              <Input
+                id="line-token"
+                type="password"
+                value={lineToken}
+                onChange={(e) => setLineToken(e.target.value)}
+                placeholder={lineTokenSet ? '已設定（留空保持不變）' : '貼上 Channel Access Token'}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="line-secret">Channel Secret</Label>
+              <Input
+                id="line-secret"
+                type="password"
+                value={lineSecret}
+                onChange={(e) => setLineSecret(e.target.value)}
+                placeholder={lineSecretSet ? '已設定（留空保持不變）' : '貼上 Channel Secret（用於驗證 webhook）'}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="line-group">Group ID</Label>
+              <Input
+                id="line-group"
+                type="text"
+                value={lineGroupId}
+                onChange={(e) => setLineGroupId(e.target.value)}
+                placeholder="Bot 加入群組後自動填入，或手動輸入"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <Button type="submit">儲存 LINE 設定</Button>
+              {lineSaved && (
+                <span className="text-[13px] text-emerald-600 font-medium">已儲存 ✓</span>
+              )}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
