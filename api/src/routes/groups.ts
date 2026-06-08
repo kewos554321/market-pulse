@@ -1,9 +1,12 @@
 import { Hono } from 'hono';
 import { Env } from '../types';
 
+const VALID_ASSET_TYPES = ['tw_stock', 'us_stock', 'crypto', 'fx'];
+
 interface GroupRow {
   id: string;
   name: string;
+  asset_type: string;
   created_at: string;
   count: number;
 }
@@ -11,13 +14,18 @@ interface GroupRow {
 export const groupRoutes = new Hono<{ Bindings: Env }>();
 
 groupRoutes.get('/', async (c) => {
-  const { results } = await c.env.DB.prepare(
-    `SELECT g.id, g.name, g.created_at, COUNT(wg.watchlist_id) as count
-     FROM groups g
-     LEFT JOIN watchlist_groups wg ON g.id = wg.group_id
-     GROUP BY g.id
-     ORDER BY g.created_at ASC`
-  ).all<GroupRow>();
+  const assetType = c.req.query('asset_type');
+  const whereClause = assetType ? 'WHERE g.asset_type = ?' : '';
+  const query = `
+    SELECT g.id, g.name, g.asset_type, g.created_at, COUNT(wg.watchlist_id) as count
+    FROM groups g
+    LEFT JOIN watchlist_groups wg ON g.id = wg.group_id
+    ${whereClause}
+    GROUP BY g.id
+    ORDER BY g.created_at ASC`;
+  const { results } = assetType
+    ? await c.env.DB.prepare(query).bind(assetType).all<GroupRow>()
+    : await c.env.DB.prepare(query).all<GroupRow>();
   return c.json(results.map((r) => ({
     id: r.id,
     name: r.name,
@@ -27,13 +35,14 @@ groupRoutes.get('/', async (c) => {
 });
 
 groupRoutes.post('/', async (c) => {
-  const { name } = await c.req.json<{ name: string }>();
+  const { name, asset_type = 'tw_stock' } = await c.req.json<{ name: string; asset_type?: string }>();
   if (!name?.trim()) return c.json({ error: 'name required' }, 400);
+  if (!VALID_ASSET_TYPES.includes(asset_type)) return c.json({ error: 'invalid asset_type' }, 400);
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
   await c.env.DB.prepare(
-    'INSERT INTO groups (id, name, created_at) VALUES (?, ?, ?)'
-  ).bind(id, name.trim(), now).run();
+    'INSERT INTO groups (id, name, asset_type, created_at) VALUES (?, ?, ?, ?)'
+  ).bind(id, name.trim(), asset_type, now).run();
   return c.json({ id, name: name.trim(), created_at: now, count: 0 }, 201);
 });
 

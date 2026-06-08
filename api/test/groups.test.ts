@@ -55,3 +55,61 @@ describe('DELETE /groups/:id', () => {
     expect(body.deletedWatchlistIds).toEqual([]);
   });
 });
+
+describe('GET /groups', () => {
+  it('returns all groups when no asset_type filter', async () => {
+    const app = makeApp();
+    const env = makeEnv(mockDB([{
+      all: [
+        { id: 'g-1', name: 'Tech', asset_type: 'tw_stock', created_at: '2024-01-01', count: 2 },
+        { id: 'g-2', name: 'Crypto', asset_type: 'crypto', created_at: '2024-01-02', count: 1 },
+      ],
+    }]));
+    const res = await req(app, 'GET', '/groups', env);
+    expect(res.status).toBe(200);
+    const body = await res.json() as { id: string; name: string }[];
+    expect(body).toHaveLength(2);
+  });
+
+  it('filters groups by asset_type query param', async () => {
+    const app = makeApp();
+    const env = makeEnv(mockDB([{
+      all: [
+        { id: 'g-2', name: 'Crypto', asset_type: 'crypto', created_at: '2024-01-02', count: 1 },
+      ],
+    }]));
+    const res = await req(app, 'GET', '/groups?asset_type=crypto', env);
+    expect(res.status).toBe(200);
+    const body = await res.json() as { id: string; name: string }[];
+    expect(body).toHaveLength(1);
+    expect(body[0].id).toBe('g-2');
+  });
+});
+
+describe('POST /groups', () => {
+  it('creates a group with explicit asset_type', async () => {
+    const app = makeApp();
+    const env = makeEnv(mockDB([{ changes: 1 }]));
+    const res = await req(app, 'POST', '/groups', env, { name: 'Tech', asset_type: 'us_stock' });
+    expect(res.status).toBe(201);
+    const body = await res.json() as { name: string; count: number };
+    expect(body.name).toBe('Tech');
+    expect(body.count).toBe(0);
+  });
+
+  it('defaults asset_type to tw_stock when not provided', async () => {
+    const app = makeApp();
+    const env = makeEnv(mockDB([{ changes: 1 }]));
+    const res = await req(app, 'POST', '/groups', env, { name: 'Bancorp' });
+    expect(res.status).toBe(201);
+  });
+
+  it('rejects unknown asset_type', async () => {
+    const app = makeApp();
+    const env = makeEnv(mockDB([]));
+    const res = await req(app, 'POST', '/groups', env, { name: 'X', asset_type: 'bonds' });
+    expect(res.status).toBe(400);
+    const body = await res.json() as { error: string };
+    expect(body.error).toBe('invalid asset_type');
+  });
+});
