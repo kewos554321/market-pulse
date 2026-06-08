@@ -242,8 +242,8 @@ export function WatchlistNew() {
       )}
 
       {/* Add stock */}
-      <Card>
-        <CardContent className="pt-4">
+      <Card className="shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+        <CardContent>
           <p className="text-xs font-semibold text-foreground mb-2">新增股票</p>
           <form onSubmit={handleAdd} className="flex gap-2 items-start">
             <StockSearch onSelect={(symbol, name) => setSelected({ symbol, name })} />
@@ -267,8 +267,8 @@ export function WatchlistNew() {
       {/* Stock list */}
       <div className="flex flex-col gap-2.5">
         {filteredItems.length === 0 && (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground text-sm">
+          <Card className="shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+            <CardContent className="py-4 text-center text-muted-foreground text-sm">
               {activeGroupId
                 ? `「${activeGroup?.name}」群組還沒有股票，點上方批量匯入或新增股票後指定群組`
                 : '還沒有追蹤的股票，從上方搜尋新增吧'}
@@ -276,10 +276,10 @@ export function WatchlistNew() {
           </Card>
         )}
         {filteredItems.map((item) => (
-          <Card key={item.id} className={cn('transition-opacity', !item.enabled && 'opacity-60')}>
-            <CardContent className="pt-4">
+          <Card key={item.id} className={cn('shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-opacity', !item.enabled && 'opacity-60')}>
+            <CardContent>
               {/* Top row */}
-              <div className="flex items-center gap-3 mb-2.5">
+              <div className="flex items-center gap-4 mb-2.5">
                 <span className={cn(
                   'w-2 h-2 rounded-full shrink-0',
                   item.enabled ? 'bg-emerald-500' : 'bg-muted-foreground/40'
@@ -298,7 +298,7 @@ export function WatchlistNew() {
                     {item.enabled ? '追蹤中' : '已暫停'}
                   </Badge>
                 </div>
-                <div className="flex gap-1.5 items-center shrink-0">
+                <div className="flex gap-2 items-center shrink-0">
                   {item.algorithmTemplate ? (
                     <Badge className="text-primary bg-primary/10 border-primary/20 text-[11px]">
                       模板：{item.algorithmTemplate.name}
