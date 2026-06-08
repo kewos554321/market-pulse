@@ -118,7 +118,7 @@ export function WatchlistNew() {
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold text-foreground">追蹤清單</h1>
-        <p className="text-sm text-muted-foreground">管理你想追蹤的股票</p>
+        <p className="text-[13px] text-muted-foreground">管理你想追蹤的股票</p>
       </div>
 
       {/* Group tabs */}
@@ -127,10 +127,10 @@ export function WatchlistNew() {
           <button
             onClick={() => { setActiveGroupId(null); setShowBulkImport(false); }}
             className={cn(
-              'px-4 py-2.5 text-sm border-0 bg-transparent cursor-pointer whitespace-nowrap border-b-2 -mb-px transition-colors',
+              'px-4 py-2.5 text-[13px] border-0 bg-transparent cursor-pointer whitespace-nowrap border-b-2 -mb-px transition-colors',
               activeGroupId === null
                 ? 'text-primary font-semibold border-primary'
-                : 'text-muted-foreground font-normal border-transparent'
+                : 'text-slate-400 font-normal border-transparent'
             )}
           >
             全部
@@ -140,10 +140,10 @@ export function WatchlistNew() {
               <button
                 onClick={() => { setActiveGroupId(g.id); setShowBulkImport(false); }}
                 className={cn(
-                  'px-4 py-2.5 text-sm border-0 bg-transparent cursor-pointer whitespace-nowrap border-b-2 -mb-px transition-colors',
+                  'px-4 py-2.5 text-[13px] border-0 bg-transparent cursor-pointer whitespace-nowrap border-b-2 -mb-px transition-colors',
                   g.id === activeGroupId
                     ? 'text-primary font-semibold border-primary'
-                    : 'text-muted-foreground font-normal border-transparent'
+                    : 'text-slate-400 font-normal border-transparent'
                 )}
               >
                 {g.name}
@@ -186,7 +186,7 @@ export function WatchlistNew() {
           ) : (
             <button
               onClick={() => setShowNewGroupInput(true)}
-              className="px-3 py-2.5 text-xs border-0 bg-transparent cursor-pointer text-muted-foreground whitespace-nowrap border-b-2 border-transparent -mb-px hover:text-foreground transition-colors"
+              className="px-3 py-2.5 text-[12px] border-0 bg-transparent cursor-pointer text-slate-400 whitespace-nowrap border-b-2 border-transparent -mb-px hover:text-foreground transition-colors"
             >
               + 新增群組
             </button>
@@ -300,25 +300,25 @@ export function WatchlistNew() {
                 </div>
                 <div className="flex gap-1.5 items-center shrink-0">
                   {item.algorithmTemplate ? (
-                    <Badge variant="outline" className="text-primary border-primary/30 bg-primary/5">
+                    <Badge className="text-primary bg-primary/10 border-primary/20 text-[11px]">
                       模板：{item.algorithmTemplate.name}
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="text-muted-foreground">
+                    <Badge className="text-slate-500 bg-slate-50 border-slate-200 text-[11px]">
                       自訂算法
                     </Badge>
                   )}
                   <Button
-                    variant="secondary"
                     size="sm"
+                    className="bg-slate-100 text-slate-700 hover:bg-slate-200"
                     onClick={() => navigate(`/watchlist/${item.id}/algorithm`)}
                   >
                     設定算法
                   </Button>
-                  <Button variant="secondary" size="sm" onClick={() => handleToggle(item)}>
+                  <Button size="sm" className="bg-slate-100 text-slate-700 hover:bg-slate-200" onClick={() => handleToggle(item)}>
                     {item.enabled ? '暫停' : '啟用'}
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(item.id)}>
+                  <Button size="sm" className="bg-[#fff0f0] text-red-500 hover:bg-red-100" onClick={() => handleDelete(item.id)}>
                     刪除
                   </Button>
                 </div>
