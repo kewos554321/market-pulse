@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { ConditionBuilder } from '../components/ConditionBuilder';
 import { PresetSignalPicker } from '../components/PresetSignalPicker';
 import { parsePresets } from '../data/signals';
@@ -60,92 +63,77 @@ export function AlgorithmLibrary() {
 
   return (
     <div>
-      <div style={{ marginBottom: '16px' }}>
-        <h1 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>算法庫</h1>
-        <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>管理可跨群組共用的算法模板</p>
+      <div className="mb-4">
+        <h1 className="text-xl font-bold text-foreground mb-1">算法庫</h1>
+        <p className="text-sm text-muted-foreground">管理可跨群組共用的算法模板</p>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+      <div className="flex flex-col gap-2.5 mb-4">
         {templates.map((t) => (
-          <div key={t.id} style={{
-            background: '#fff', borderRadius: '12px', padding: '16px',
-            border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ flex: 1 }}>
-                <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '14px' }}>{t.name}</span>
-                <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: '8px' }}>
+          <Card key={t.id}>
+            <CardContent className="flex items-center gap-3">
+              <div className="flex-1">
+                <span className="font-bold text-foreground text-sm">{t.name}</span>
+                <span className="text-xs text-muted-foreground ml-2">
                   {t.conditions.conditions.length} 個條件
                 </span>
               </div>
-              <button
-                onClick={() => startEdit(t)}
-                style={{ background: '#f1f5f9', color: '#374151', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' }}
-              >
-                編輯
-              </button>
-              <button
-                onClick={() => handleDelete(t.id)}
-                style={{ background: '#fff0f0', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' }}
-              >
-                刪除
-              </button>
-            </div>
-          </div>
+              <Button variant="secondary" size="sm" onClick={() => startEdit(t)}>編輯</Button>
+              <Button variant="destructive" size="sm" onClick={() => handleDelete(t.id)}>刪除</Button>
+            </CardContent>
+          </Card>
         ))}
         {templates.length === 0 && (
-          <div style={{ background: '#fff', borderRadius: '12px', padding: '32px', textAlign: 'center', color: '#94a3b8', fontSize: '14px', border: '1px solid #e2e8f0' }}>
-            尚無算法模板，點下方建立第一個
-          </div>
+          <Card>
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              尚無算法模板，點下方建立第一個
+            </CardContent>
+          </Card>
         )}
       </div>
 
       {!showForm && (
-        <button
-          onClick={startNew}
-          style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
-        >
-          + 新增模板
-        </button>
+        <Button onClick={startNew}>+ 新增模板</Button>
       )}
 
       {showForm && (
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '12px' }}>
-            {editing ? `編輯：${editing.name}` : '新增模板'}
-          </div>
-          <input
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="模板名稱（如「動能型」）"
-            style={{ border: '1.5px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', fontSize: '13px', width: '100%', marginBottom: '16px', outline: 'none', boxSizing: 'border-box' }}
-          />
-          {mode === 'preset'
-            ? <PresetSignalPicker value={conditions} onChange={setConditions} />
-            : <ConditionBuilder conditions={conditions} onChange={setConditions} />
-          }
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px' }}>
-            <button
-              onClick={handleSave}
-              style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
-            >
-              儲存
-            </button>
-            {saved && <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 500 }}>已儲存 ✓</span>}
-            <button
-              onClick={() => setShowForm(false)}
-              style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '12px', cursor: 'pointer', marginLeft: 'auto' }}
-            >
-              取消
-            </button>
-            <button
-              onClick={() => setMode(mode === 'preset' ? 'advanced' : 'preset')}
-              style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '12px', cursor: 'pointer' }}
-            >
-              {mode === 'preset' ? '⚙ 進階模式' : '← 回到訊號選擇'}
-            </button>
-          </div>
-        </div>
+        <Card>
+          <CardContent className="pt-5">
+            <p className="text-[13px] font-semibold text-foreground mb-3">
+              {editing ? `編輯：${editing.name}` : '新增模板'}
+            </p>
+            <Input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="模板名稱（如「動能型」）"
+              className="mb-4"
+            />
+            {mode === 'preset'
+              ? <PresetSignalPicker value={conditions} onChange={setConditions} />
+              : <ConditionBuilder conditions={conditions} onChange={setConditions} />
+            }
+            <div className="flex items-center gap-3 mt-4">
+              <Button onClick={handleSave}>儲存</Button>
+              {saved && <span className="text-[13px] text-emerald-600 font-medium">已儲存 ✓</span>}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="ml-auto text-muted-foreground"
+                onClick={() => setShowForm(false)}
+              >
+                取消
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground"
+                onClick={() => setMode(mode === 'preset' ? 'advanced' : 'preset')}
+              >
+                {mode === 'preset' ? '⚙ 進階模式' : '← 回到訊號選擇'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
