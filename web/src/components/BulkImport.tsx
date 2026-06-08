@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import stocksData from '../data/stocks.json';
+import usStocksData from '../data/us-stocks.json';
+import { CRYPTO_LIST } from '../data/crypto';
+import { FX_PAIRS } from '../data/fx';
 import { api } from '../api/client';
 import type { AssetType, Group, WatchlistItem } from '../types';
 
-interface StockEntry {
+interface AssetEntry {
   symbol: string;
   name: string;
   status: 'new' | 'exists' | 'unknown';
@@ -18,7 +21,12 @@ interface Props {
   onClose: () => void;
 }
 
-const stocks = stocksData as { symbol: string; name: string }[];
+const ASSET_DATA: Record<AssetType, { symbol: string; name: string }[]> = {
+  tw_stock: stocksData as { symbol: string; name: string }[],
+  us_stock: usStocksData as { symbol: string; name: string }[],
+  crypto: CRYPTO_LIST,
+  fx: FX_PAIRS,
+};
 
 function parseSymbols(input: string): string[] {
   return [...new Set(
@@ -28,18 +36,20 @@ function parseSymbols(input: string): string[] {
 
 export function BulkImport({ assetType, activeGroup, existingItems, onComplete, onClose }: Props) {
   const [input, setInput] = useState('');
-  const [preview, setPreview] = useState<StockEntry[] | null>(null);
+  const [preview, setPreview] = useState<AssetEntry[] | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const assets = ASSET_DATA[assetType];
 
   function handleParse() {
     const codes = parseSymbols(input);
-    const entries: StockEntry[] = codes.map((symbol) => {
-      const stock = stocks.find((s) => s.symbol === symbol);
-      if (!stock) return { symbol, name: '—', status: 'unknown' as const };
+    const entries: AssetEntry[] = codes.map((symbol) => {
+      const asset = assets.find((a) => a.symbol === symbol);
+      if (!asset) return { symbol, name: '—', status: 'unknown' as const };
       const existing = existingItems.find((i) => i.symbol === symbol);
       return {
         symbol,
-        name: stock.name,
+        name: asset.name,
         status: existing ? ('exists' as const) : ('new' as const),
         watchlistId: existing?.id,
       };
@@ -86,7 +96,7 @@ export function BulkImport({ assetType, activeGroup, existingItems, onComplete, 
         批量新增到「{activeGroup.name}」
       </div>
       <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '10px' }}>
-        貼入股票代號，空白、逗號、換行皆可
+        貼入代號，空白、逗號、換行皆可
       </div>
 
       {!preview ? (
@@ -94,7 +104,7 @@ export function BulkImport({ assetType, activeGroup, existingItems, onComplete, 
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="例如：2330 2317 2382 或貼上 Excel 欄位..."
+            placeholder="貼上代號..."
             style={{
               width: '100%', height: '72px', border: '1.5px solid #e2e8f0', borderRadius: '8px',
               padding: '10px 12px', fontSize: '13px', color: '#374151', resize: 'none',
@@ -126,11 +136,11 @@ export function BulkImport({ assetType, activeGroup, existingItems, onComplete, 
             marginBottom: '10px', border: '1px solid #e2e8f0', maxHeight: '200px', overflowY: 'auto',
           }}>
             <div style={{ fontSize: '11px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
-              解析結果（{preview.length} 支）
+              解析結果（{preview.length} 筆）
             </div>
             {preview.map((e) => (
               <div key={e.symbol} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#6366f1', minWidth: '36px' }}>{e.symbol}</span>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#6366f1', minWidth: '60px' }}>{e.symbol}</span>
                 <span style={{ fontSize: '12px', color: '#374151' }}>{e.name}</span>
                 <span style={{
                   marginLeft: 'auto', fontSize: '10px', padding: '1px 6px', borderRadius: '99px',
@@ -152,7 +162,7 @@ export function BulkImport({ assetType, activeGroup, existingItems, onComplete, 
                 cursor: 'pointer', opacity: loading ? 0.6 : 1,
               }}
             >
-              {loading ? '匯入中...' : `確認匯入${newCount > 0 ? `（${newCount} 支新增）` : ''}`}
+              {loading ? '匯入中...' : `確認匯入${newCount > 0 ? `（${newCount} 筆新增）` : ''}`}
             </button>
             <button
               onClick={() => setPreview(null)}
@@ -161,7 +171,7 @@ export function BulkImport({ assetType, activeGroup, existingItems, onComplete, 
               重新輸入
             </button>
             {unknownCount > 0 && (
-              <span style={{ fontSize: '11px', color: '#94a3b8' }}>{unknownCount} 支找不到代號將略過</span>
+              <span style={{ fontSize: '11px', color: '#94a3b8' }}>{unknownCount} 筆找不到代號將略過</span>
             )}
           </div>
         </>

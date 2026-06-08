@@ -73,11 +73,12 @@ export const api = {
     }),
   deleteEmailRecipient: (id: string) =>
     request<{ success: boolean }>(`/email-recipients/${id}`, { method: 'DELETE' }),
-  getGroups: () => request<import('../types').Group[]>('/groups'),
-  createGroup: (name: string) =>
+  getGroups: (assetType: import('../types').AssetType) =>
+    request<import('../types').Group[]>(`/groups?asset_type=${assetType}`),
+  createGroup: (name: string, assetType: import('../types').AssetType) =>
     request<import('../types').Group>('/groups', {
       method: 'POST',
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, asset_type: assetType }),
     }),
   deleteGroup: (id: string) => request<{ success: boolean; deletedWatchlistIds: string[] }>(`/groups/${id}`, { method: 'DELETE' }),
   batchApplyTemplate: (groupId: string, templateId: string | null) =>

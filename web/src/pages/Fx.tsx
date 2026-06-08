@@ -1,5 +1,4 @@
 import { AssetPage } from '../components/AssetPage';
-import { AssetWatchlist } from '../components/AssetWatchlist';
 
 export function Fx() {
   return (
@@ -8,7 +7,6 @@ export function Fx() {
       basePath="/fx"
       label="貨幣對"
       description="追蹤各國匯率（USD、EUR、GBP、TWD、JPY、AUD、CHF）"
-      WatchlistComponent={AssetWatchlist}
     />
   );
 }

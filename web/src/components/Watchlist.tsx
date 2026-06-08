@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
-import { StockSearch } from '../components/StockSearch';
-import { GroupPicker } from '../components/GroupPicker';
-import { BulkImport } from '../components/BulkImport';
-import { AlgorithmTemplatePicker } from '../components/AlgorithmTemplatePicker';
-import { Pager } from '../components/Pager';
+import { AssetSearch } from './AssetSearch';
+import { GroupPicker } from './GroupPicker';
+import { BulkImport } from './BulkImport';
+import { AlgorithmTemplatePicker } from './AlgorithmTemplatePicker';
+import { Pager } from './Pager';
 import { usePagination } from '../lib/usePagination';
 import { useStableListHeight } from '../lib/useStableListHeight';
 import type { AssetType, WatchlistItem, Group, AlgorithmTemplate } from '../types';
 
-interface WatchlistProps {
+interface Props {
   assetType: AssetType;
   label: string;
   description: string;
 }
 
-export function Watchlist({ assetType, label, description }: WatchlistProps) {
+export function Watchlist({ assetType, label, description }: Props) {
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
@@ -34,12 +34,13 @@ export function Watchlist({ assetType, label, description }: WatchlistProps) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    setIsLoading(true);
     Promise.all([
       api.getWatchlist(assetType).then(setItems),
-      api.getGroups().then(setGroups),
+      api.getGroups(assetType).then(setGroups),
       api.getAlgorithmTemplates().then(setTemplates),
     ]).catch(console.error).finally(() => setIsLoading(false));
-  }, []);
+  }, [assetType]);
 
   const activeGroup = groups.find((g) => g.id === activeGroupId) ?? null;
   const filteredItems = activeGroupId
@@ -47,7 +48,6 @@ export function Watchlist({ assetType, label, description }: WatchlistProps) {
     : items;
 
   const { page, setPage, pageItems, totalPages } = usePagination(filteredItems, 10);
-
   const { listRef, listMinHeight, resetHeight } = useStableListHeight(pageItems);
 
   useEffect(() => {
@@ -108,7 +108,7 @@ export function Watchlist({ assetType, label, description }: WatchlistProps) {
   }
 
   async function handleCreateAndAssign(itemId: string, name: string) {
-    const group = await api.createGroup(name);
+    const group = await api.createGroup(name, assetType);
     setGroups((prev) => [...prev, group]);
     const item = items.find((i) => i.id === itemId)!;
     const newIds = [...item.groups.map((g) => g.id), group.id];
@@ -154,7 +154,7 @@ export function Watchlist({ assetType, label, description }: WatchlistProps) {
   return (
     <div>
       <div style={{ marginBottom: '16px' }}>
-        <h1 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>{label}</h1>
+        <h1 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>追蹤清單</h1>
         <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>{description}</p>
       </div>
 
@@ -200,7 +200,7 @@ export function Watchlist({ assetType, label, description }: WatchlistProps) {
               onSubmit={async (e) => {
                 e.preventDefault();
                 if (!newGroupName.trim()) return;
-                const group = await api.createGroup(newGroupName.trim());
+                const group = await api.createGroup(newGroupName.trim(), assetType);
                 setGroups((prev) => [...prev, group]);
                 setActiveGroupId(group.id);
                 setNewGroupName('');
@@ -326,14 +326,14 @@ export function Watchlist({ assetType, label, description }: WatchlistProps) {
         </div>
       )}
 
-      {/* Add stock */}
+      {/* Add item */}
       <div style={{
         background: '#fff', borderRadius: '12px', padding: '16px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.06)', border: '1px solid #e2e8f0', marginBottom: '16px',
       }}>
-        <div style={{ fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>新增股票</div>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>新增{label}</div>
         <form onSubmit={handleAdd} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-          <StockSearch onSelect={(symbol, name) => setSelected({ symbol, name })} />
+          <AssetSearch assetType={assetType} onSelect={(symbol, name) => setSelected({ symbol, name })} />
           {selected && (
             <span style={{
               alignSelf: 'center', fontSize: '12px', color: '#6366f1',
@@ -359,7 +359,7 @@ export function Watchlist({ assetType, label, description }: WatchlistProps) {
         {error && <p style={{ color: '#ef4444', fontSize: '13px', margin: '8px 0 0' }}>{error}</p>}
       </div>
 
-      {/* Stock list */}
+      {/* Item list */}
       <div ref={listRef} style={{ display: 'flex', flexDirection: 'column', gap: '10px', minHeight: listMinHeight || undefined }}>
         {filteredItems.length === 0 && (
           <div style={{
@@ -367,8 +367,8 @@ export function Watchlist({ assetType, label, description }: WatchlistProps) {
             textAlign: 'center', color: '#94a3b8', fontSize: '14px', border: '1px solid #e2e8f0',
           }}>
             {activeGroupId
-              ? `「${activeGroup?.name}」群組還沒有股票，點上方批量匯入或新增股票後指定群組`
-              : '還沒有追蹤的股票，從上方搜尋新增吧'}
+              ? `「${activeGroup?.name}」群組還沒有項目，點上方批量匯入或新增後指定群組`
+              : `還沒有追蹤的${label}，從上方搜尋新增吧`}
           </div>
         )}
         {pageItems.map((item) => (
@@ -397,7 +397,6 @@ export function Watchlist({ assetType, label, description }: WatchlistProps) {
                 </span>
               </div>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                {/* Algorithm badge */}
                 {item.algorithmTemplate ? (
                   <span style={{
                     fontSize: '11px', padding: '2px 10px', borderRadius: '99px', border: '1px solid',
