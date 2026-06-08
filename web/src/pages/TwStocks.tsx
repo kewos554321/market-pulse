@@ -1,22 +1,14 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { SubTabNav } from '../components/SubTabNav';
+import { AssetPage } from '../components/AssetPage';
 import { Watchlist } from './Watchlist';
-import { AssetSignals } from '../components/AssetSignals';
-
-const TABS = [
-  { to: '/tw-stocks', label: '追蹤清單' },
-  { to: '/tw-stocks/signals', label: '訊號歷史' },
-];
 
 export function TwStocks() {
   return (
-    <div>
-      <SubTabNav tabs={TABS} />
-      <Routes>
-        <Route index element={<Watchlist />} />
-        <Route path="signals" element={<AssetSignals assetType="tw_stock" />} />
-        <Route path="*" element={<Navigate to="/tw-stocks" replace />} />
-      </Routes>
-    </div>
+    <AssetPage
+      assetType="tw_stock"
+      basePath="/tw-stocks"
+      label="台股"
+      description="管理你想追蹤的股票"
+      WatchlistComponent={Watchlist}
+    />
   );
 }

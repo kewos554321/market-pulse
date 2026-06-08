@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { StockSearch } from '../components/StockSearch';
@@ -7,9 +7,16 @@ import { BulkImport } from '../components/BulkImport';
 import { AlgorithmTemplatePicker } from '../components/AlgorithmTemplatePicker';
 import { Pager } from '../components/Pager';
 import { usePagination } from '../lib/usePagination';
-import type { WatchlistItem, Group, AlgorithmTemplate } from '../types';
+import { useStableListHeight } from '../lib/useStableListHeight';
+import type { AssetType, WatchlistItem, Group, AlgorithmTemplate } from '../types';
 
-export function Watchlist() {
+interface WatchlistProps {
+  assetType: AssetType;
+  label: string;
+  description: string;
+}
+
+export function Watchlist({ assetType: _assetType, label: _label, description: _description }: WatchlistProps) {
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
@@ -41,19 +48,10 @@ export function Watchlist() {
 
   const { page, setPage, pageItems, totalPages } = usePagination(filteredItems, 10);
 
-  const listRef = useRef<HTMLDivElement>(null);
-  const [listMinHeight, setListMinHeight] = useState(0);
+  const { listRef, listMinHeight, resetHeight } = useStableListHeight(pageItems);
 
   useEffect(() => {
-    if (listRef.current) {
-      const h = listRef.current.scrollHeight;
-      setListMinHeight((prev) => Math.max(prev, h));
-    }
-  }, [pageItems]);
-
-  // 切換群組時重置，讓新群組重新量測
-  useEffect(() => {
-    setListMinHeight(0);
+    resetHeight();
     setConfirmDeleteGroupId(null);
   }, [activeGroupId]);
 
