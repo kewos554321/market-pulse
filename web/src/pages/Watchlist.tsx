@@ -58,12 +58,21 @@ export function Watchlist() {
     setError('');
     try {
       const item = await api.addStock(selected.symbol, selected.name, 'tw_stock');
-      const newItem = { ...item, groups: [] as Group[] };
-      if (activeGroupId && activeGroup) {
-        await api.setWatchlistGroups(item.id, [activeGroupId]);
-        newItem.groups = [activeGroup];
+      const existingGroupIds = item.groups.map((g) => g.id);
+
+      let finalGroups = item.groups;
+      if (activeGroupId && activeGroup && !existingGroupIds.includes(activeGroupId)) {
+        const newGroupIds = [...existingGroupIds, activeGroupId];
+        await api.setWatchlistGroups(item.id, newGroupIds);
+        finalGroups = [...item.groups, activeGroup];
       }
-      setItems((prev) => [newItem, ...prev]);
+
+      const updatedItem = { ...item, groups: finalGroups };
+      setItems((prev) =>
+        prev.some((i) => i.id === item.id)
+          ? prev.map((i) => (i.id === item.id ? updatedItem : i))
+          : [updatedItem, ...prev]
+      );
       setSelected(null);
     } catch (err) {
       setError(String(err));

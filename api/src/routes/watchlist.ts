@@ -83,21 +83,55 @@ watchlistRoutes.post('/', async (c) => {
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
 
-  await c.env.DB.prepare(
-    'INSERT INTO watchlist (id, symbol, name, enabled, asset_type, algorithm_template_id, created_at) VALUES (?, ?, ?, 1, ?, ?, ?)'
-  ).bind(id, symbol.trim(), name.trim(), asset_type, templateId, now).run();
+  try {
+    await c.env.DB.prepare(
+      'INSERT INTO watchlist (id, symbol, name, enabled, asset_type, algorithm_template_id, created_at) VALUES (?, ?, ?, 1, ?, ?, ?)'
+    ).bind(id, symbol.trim(), name.trim(), asset_type, templateId, now).run();
 
-  await c.env.DB.prepare(
-    'INSERT INTO algorithms (id, watchlist_id, conditions, updated_at) VALUES (?, ?, ?, ?)'
-  ).bind(crypto.randomUUID(), id, '{"operator":"AND","conditions":[]}', now).run();
+    await c.env.DB.prepare(
+      'INSERT INTO algorithms (id, watchlist_id, conditions, updated_at) VALUES (?, ?, ?, ?)'
+    ).bind(crypto.randomUUID(), id, '{"operator":"AND","conditions":[]}', now).run();
 
-  return c.json({
-    id, symbol: symbol.trim(), name: name.trim(),
-    enabled: 1, asset_type, groups: [],
-    algorithm_template_id: templateId,
-    algorithmTemplate: null,
-    created_at: now,
-  }, 201);
+    return c.json({
+      id, symbol: symbol.trim(), name: name.trim(),
+      enabled: 1, asset_type, groups: [],
+      algorithm_template_id: templateId,
+      algorithmTemplate: null,
+      created_at: now,
+    }, 201);
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message.includes('UNIQUE constraint failed')) {
+      const existing = await c.env.DB.prepare(`
+        SELECT w.id, w.symbol, w.name, w.enabled, w.asset_type, w.algorithm_template_id, w.created_at,
+          at2.name as algorithm_template_name,
+          COALESCE(
+            json_group_array(
+              CASE WHEN g.id IS NOT NULL
+                THEN json_object('id', g.id, 'name', g.name)
+                ELSE NULL
+              END
+            ) FILTER (WHERE g.id IS NOT NULL),
+            '[]'
+          ) as groups
+        FROM watchlist w
+        LEFT JOIN watchlist_groups wg ON w.id = wg.watchlist_id
+        LEFT JOIN groups g ON wg.group_id = g.id
+        LEFT JOIN algorithm_templates at2 ON w.algorithm_template_id = at2.id
+        WHERE w.symbol = ?
+        GROUP BY w.id
+      `).bind(symbol.trim()).first<WatchlistRow & { groups: string; algorithm_template_name: string | null }>();
+      if (existing) {
+        return c.json({
+          ...existing,
+          groups: JSON.parse(existing.groups as string),
+          algorithmTemplate: existing.algorithm_template_id
+            ? { id: existing.algorithm_template_id, name: existing.algorithm_template_name! }
+            : null,
+        }, 200);
+      }
+    }
+    throw err;
+  }
 });
 
 watchlistRoutes.delete('/:id', async (c) => {
