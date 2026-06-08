@@ -39,9 +39,30 @@ groupRoutes.post('/', async (c) => {
 
 groupRoutes.delete('/:id', async (c) => {
   const { id } = c.req.param();
-  const result = await c.env.DB.prepare('DELETE FROM groups WHERE id = ?').bind(id).run();
+
+  const { results: orphans } = await c.env.DB.prepare(
+    `SELECT w.id FROM watchlist w
+     JOIN watchlist_groups wg ON w.id = wg.watchlist_id
+     WHERE wg.group_id = ?
+     AND (SELECT COUNT(*) FROM watchlist_groups WHERE watchlist_id = w.id) = 1`
+  ).bind(id).all<{ id: string }>();
+
+  const result = await c.env.DB.prepare(
+    'DELETE FROM groups WHERE id = ?'
+  ).bind(id).run();
+
   if (result.meta.changes === 0) return c.json({ error: 'Not found' }, 404);
-  return c.json({ success: true });
+
+  const deletedWatchlistIds = orphans.map((r) => r.id);
+
+  if (deletedWatchlistIds.length > 0) {
+    const placeholders = deletedWatchlistIds.map(() => '?').join(', ');
+    await c.env.DB.prepare(
+      `DELETE FROM watchlist WHERE id IN (${placeholders})`
+    ).bind(...deletedWatchlistIds).run();
+  }
+
+  return c.json({ success: true, deletedWatchlistIds });
 });
 
 groupRoutes.put('/:id/batch-apply-template', async (c) => {
