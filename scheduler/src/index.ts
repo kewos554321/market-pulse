@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { calculateIndicators } from './indicators.js';
 import { evaluateConditionTree } from './evaluator.js';
-import { sendSignalEmail } from './notify.js';
+import { sendSignalEmail, describeConditionTree } from './notify.js';
 import { sendLineGroupMessage } from './line.js';
 import { BUILT_IN_STRATEGIES } from './strategies.js';
 import { TwStockFetcher } from './fetchers/tw-stock.js';
@@ -38,6 +38,7 @@ interface WatchlistItem {
   name: string;
   enabled: number;
   asset_type: string;
+  groups: { id: string; name: string }[];
 }
 
 interface AlgorithmResponse {
@@ -65,6 +66,8 @@ async function runWatchlistScan(
     close_price: number;
     conditions_snapshot: unknown;
     name: string;
+    groups: string[];
+    triggeredConditions: string[];
   }[] = [];
 
   for (const item of enabled) {
@@ -94,6 +97,8 @@ async function runWatchlistScan(
           close_price: closePrice,
           conditions_snapshot: algo.conditions,
           name: item.name,
+          groups: item.groups.map((g) => g.name),
+          triggeredConditions: describeConditionTree(algo.conditions),
         });
       } else {
         console.log(`⬜ ${item.symbol}: conditions not met`);
@@ -117,7 +122,8 @@ async function runWatchlistScan(
           symbol: s.symbol,
           name: s.name,
           closePrice: s.close_price,
-          triggeredConditions: ['條件符合'],
+          triggeredConditions: s.triggeredConditions,
+          groups: s.groups,
         }))
       );
       console.log(`✉️  Sent email to ${notifyEmails.length} recipients with ${triggeredSignals.length} signals`);
@@ -135,7 +141,8 @@ async function runWatchlistScan(
             symbol: s.symbol,
             name: s.name,
             closePrice: s.close_price,
-            triggeredConditions: ['條件符合'],
+            triggeredConditions: s.triggeredConditions,
+            groups: s.groups,
           }))
         );
         console.log(`💬 Sent LINE message to group ${lineGroupId}`);
