@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import { Home } from './pages/Home';
 import { TwStocks } from './pages/TwStocks';
-import { TwStocksNew } from './pages/TwStocksNew';
 import { UsStocks } from './pages/UsStocks';
 import { Crypto } from './pages/Crypto';
 import { Fx } from './pages/Fx';
@@ -22,7 +21,6 @@ export function App() {
           {[
             { to: '/', label: '首頁', exact: true },
             { to: '/tw-stocks', label: '台股', exact: false },
-            { to: '/tw-stocks-new', label: '台股(新)', exact: false },
             { to: '/us-stocks', label: '美股', exact: false },
             { to: '/crypto', label: '加密貨幣', exact: false },
             { to: '/fx', label: '匯率', exact: false },
@@ -51,7 +49,6 @@ export function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/tw-stocks/*" element={<TwStocks />} />
-            <Route path="/tw-stocks-new/*" element={<TwStocksNew />} />
             <Route path="/us-stocks/*" element={<UsStocks />} />
             <Route path="/crypto/*" element={<Crypto />} />
             <Route path="/fx/*" element={<Fx />} />
