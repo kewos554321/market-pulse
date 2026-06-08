@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 interface Tab {
   to: string;
@@ -11,25 +12,20 @@ interface Props {
 
 export function SubTabNav({ tabs }: Props) {
   return (
-    <div style={{
-      display: 'flex', borderBottom: '1px solid #e2e8f0',
-      marginBottom: '20px', gap: '4px',
-    }}>
+    <div className="flex border-b border-border mb-5 gap-1">
       {tabs.map(({ to, label }) => (
         <NavLink
           key={to}
           to={to}
           end
-          style={({ isActive }) => ({
-            padding: '8px 16px',
-            fontSize: '13px',
-            textDecoration: 'none',
-            color: isActive ? '#6366f1' : '#64748b',
-            fontWeight: isActive ? 600 : 400,
-            borderBottom: isActive ? '2px solid #6366f1' : '2px solid transparent',
-            marginBottom: '-1px',
-            transition: 'color 0.15s',
-          })}
+          className={({ isActive }) =>
+            cn(
+              'px-4 py-2 text-[13px] no-underline transition-colors -mb-px border-b-2',
+              isActive
+                ? 'text-primary font-semibold border-primary'
+                : 'text-muted-foreground font-normal border-transparent'
+            )
+          }
         >
           {label}
         </NavLink>
