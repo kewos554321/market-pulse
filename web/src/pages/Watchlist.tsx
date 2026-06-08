@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { StockSearch } from '../components/StockSearch';
 import { GroupPicker } from '../components/GroupPicker';
 import { BulkImport } from '../components/BulkImport';
 import { AlgorithmTemplatePicker } from '../components/AlgorithmTemplatePicker';
+import { Pager } from '../components/Pager';
+import { usePagination } from '../lib/usePagination';
 import type { WatchlistItem, Group, AlgorithmTemplate } from '../types';
 
 export function Watchlist() {
@@ -32,6 +34,23 @@ export function Watchlist() {
   const filteredItems = activeGroupId
     ? items.filter((item) => item.groups.some((g) => g.id === activeGroupId))
     : items;
+
+  const { page, setPage, pageItems, totalPages } = usePagination(filteredItems, 10);
+
+  const listRef = useRef<HTMLDivElement>(null);
+  const [listMinHeight, setListMinHeight] = useState(0);
+
+  useEffect(() => {
+    if (listRef.current) {
+      const h = listRef.current.scrollHeight;
+      setListMinHeight((prev) => Math.max(prev, h));
+    }
+  }, [pageItems]);
+
+  // 切換群組時重置，讓新群組重新量測
+  useEffect(() => {
+    setListMinHeight(0);
+  }, [activeGroupId]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -123,7 +142,7 @@ export function Watchlist() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', overflowX: 'auto', flex: 1, minWidth: 0 }}>
           <button
-            onClick={() => { setActiveGroupId(null); setShowBulkImport(false); }}
+            onClick={() => { setActiveGroupId(null); setShowBulkImport(false); setPage(1); }}
             style={{
               padding: '10px 16px', fontSize: '13px', border: 'none', background: 'none',
               cursor: 'pointer', whiteSpace: 'nowrap',
@@ -139,7 +158,7 @@ export function Watchlist() {
             return (
               <div key={g.id} style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                 <button
-                  onClick={() => { setActiveGroupId(g.id); setShowBulkImport(false); }}
+                  onClick={() => { setActiveGroupId(g.id); setShowBulkImport(false); setPage(1); }}
                   style={{
                     padding: '10px 12px 10px 16px', fontSize: '13px', border: 'none', background: 'none',
                     cursor: 'pointer', whiteSpace: 'nowrap',
@@ -296,7 +315,7 @@ export function Watchlist() {
       </div>
 
       {/* Stock list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div ref={listRef} style={{ display: 'flex', flexDirection: 'column', gap: '10px', minHeight: listMinHeight || undefined }}>
         {filteredItems.length === 0 && (
           <div style={{
             background: '#fff', borderRadius: '12px', padding: '32px',
@@ -307,7 +326,7 @@ export function Watchlist() {
               : '還沒有追蹤的股票，從上方搜尋新增吧'}
           </div>
         )}
-        {filteredItems.map((item) => (
+        {pageItems.map((item) => (
           <div
             key={item.id}
             style={{
@@ -409,6 +428,8 @@ export function Watchlist() {
           </div>
         ))}
       </div>
+
+      <Pager page={page} totalPages={totalPages} onPageChange={setPage} className="mt-4" />
     </div>
   );
 }
