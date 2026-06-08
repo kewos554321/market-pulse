@@ -23,7 +23,7 @@ export function Watchlist() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.getWatchlist().then(setItems).catch(console.error);
+    api.getWatchlist('tw_stock').then(setItems).catch(console.error);
     api.getGroups().then(setGroups).catch(console.error);
     api.getAlgorithmTemplates().then(setTemplates).catch(console.error);
   }, []);
