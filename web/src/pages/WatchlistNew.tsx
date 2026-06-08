@@ -197,11 +197,11 @@ export function WatchlistNew() {
         {activeGroupId && activeGroup && (
           <div className="relative shrink-0">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setBatchPickerOpen((o) => !o)}
               disabled={batchApplying}
-              className="m-1.5"
+              className="m-1.5 bg-primary/10 text-primary hover:bg-primary/20"
             >
               {batchApplying ? '套用中...' : '⚙ 批次套用模板 ▾'}
             </Button>
@@ -230,7 +230,7 @@ export function WatchlistNew() {
             />
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setShowBulkImport(true)}>
+              <Button variant="ghost" size="sm" className="bg-primary/10 text-primary hover:bg-primary/20" onClick={() => setShowBulkImport(true)}>
                 ↑ 批量匯入到「{activeGroup.name}」
               </Button>
               <Button variant="destructive" size="sm" onClick={() => handleDeleteGroup(activeGroupId)}>
@@ -289,11 +289,11 @@ export function WatchlistNew() {
                   <span className="text-muted-foreground text-sm">{item.name}</span>
                   <Badge
                     className={cn(
+                      'border-0',
                       item.enabled
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        ? 'bg-emerald-100 text-emerald-900'
                         : 'bg-secondary text-muted-foreground'
                     )}
-                    variant="outline"
                   >
                     {item.enabled ? '追蹤中' : '已暫停'}
                   </Badge>
@@ -309,13 +309,13 @@ export function WatchlistNew() {
                     </Badge>
                   )}
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => navigate(`/watchlist/${item.id}/algorithm`)}
                   >
                     設定算法
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleToggle(item)}>
+                  <Button variant="secondary" size="sm" onClick={() => handleToggle(item)}>
                     {item.enabled ? '暫停' : '啟用'}
                   </Button>
                   <Button variant="destructive" size="sm" onClick={() => handleDelete(item.id)}>
