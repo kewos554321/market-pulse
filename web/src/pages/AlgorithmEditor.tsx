@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { Button } from '@/components/ui/button';
@@ -79,7 +80,7 @@ export function AlgorithmEditor() {
 
       <div className="flex items-center gap-2 bg-muted/40 border border-border rounded-lg px-3.5 py-2.5 mb-4 relative">
         <span className="text-xs text-muted-foreground font-medium mr-1">算法來源：</span>
-        <span className={`text-xs font-semibold ${algoState.source === 'template' ? 'text-violet-700' : 'text-foreground'}`}>
+        <span className={cn('text-xs font-semibold', algoState.source === 'template' ? 'text-primary' : 'text-foreground')}>
           {algoState.source === 'template'
             ? `模板：${algoState.templateName ?? '(未命名)'}`
             : '自訂'}
@@ -109,14 +110,14 @@ export function AlgorithmEditor() {
           {loading ? (
             <div className="py-8 text-center text-muted-foreground text-[13px]">載入中...</div>
           ) : algoState.source === 'template' ? (
-            <div className="bg-violet-50 border border-violet-200 rounded-lg px-4 py-3">
-              <div className="text-xs text-violet-700 font-semibold mb-2">
+            <div className="bg-primary/5 border border-primary/20 rounded-lg px-4 py-3">
+              <div className="text-xs text-primary font-semibold mb-2">
                 模板：{algoState.templateName ?? '(未命名)'}（即時同步）
               </div>
               {algoState.conditions.conditions.length === 0 ? (
                 <div className="text-xs text-muted-foreground">此模板尚未設定條件</div>
               ) : (
-                <pre className="m-0 text-xs text-violet-700 font-mono">
+                <pre className="m-0 text-xs text-primary font-mono">
                   {JSON.stringify(algoState.conditions, null, 2)}
                 </pre>
               )}
