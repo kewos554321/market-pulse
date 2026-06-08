@@ -16,7 +16,7 @@ interface WatchlistProps {
   description: string;
 }
 
-export function Watchlist({ assetType: _assetType, label: _label, description: _description }: WatchlistProps) {
+export function Watchlist({ assetType, label, description }: WatchlistProps) {
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
@@ -35,7 +35,7 @@ export function Watchlist({ assetType: _assetType, label: _label, description: _
 
   useEffect(() => {
     Promise.all([
-      api.getWatchlist('tw_stock').then(setItems),
+      api.getWatchlist(assetType).then(setItems),
       api.getGroups().then(setGroups),
       api.getAlgorithmTemplates().then(setTemplates),
     ]).catch(console.error).finally(() => setIsLoading(false));
@@ -60,7 +60,7 @@ export function Watchlist({ assetType: _assetType, label: _label, description: _
     if (!selected) return;
     setError('');
     try {
-      const item = await api.addStock(selected.symbol, selected.name, 'tw_stock');
+      const item = await api.addStock(selected.symbol, selected.name, assetType);
       const existingGroupIds = item.groups.map((g) => g.id);
 
       let finalGroups = item.groups;
@@ -154,8 +154,8 @@ export function Watchlist({ assetType: _assetType, label: _label, description: _
   return (
     <div>
       <div style={{ marginBottom: '16px' }}>
-        <h1 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>追蹤清單</h1>
-        <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>管理你想追蹤的股票</p>
+        <h1 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>{label}</h1>
+        <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>{description}</p>
       </div>
 
       {/* Group tabs */}
@@ -272,6 +272,7 @@ export function Watchlist({ assetType: _assetType, label: _label, description: _
         <div style={{ marginBottom: '8px' }}>
           {showBulkImport ? (
             <BulkImport
+              assetType={assetType}
               activeGroup={activeGroup}
               existingItems={items}
               onComplete={setItems}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import stocksData from '../data/stocks.json';
 import { api } from '../api/client';
-import type { Group, WatchlistItem } from '../types';
+import type { AssetType, Group, WatchlistItem } from '../types';
 
 interface StockEntry {
   symbol: string;
@@ -11,6 +11,7 @@ interface StockEntry {
 }
 
 interface Props {
+  assetType: AssetType;
   activeGroup: Group;
   existingItems: WatchlistItem[];
   onComplete: (updated: WatchlistItem[]) => void;
@@ -25,7 +26,7 @@ function parseSymbols(input: string): string[] {
   )];
 }
 
-export function BulkImport({ activeGroup, existingItems, onComplete, onClose }: Props) {
+export function BulkImport({ assetType, activeGroup, existingItems, onComplete, onClose }: Props) {
   const [input, setInput] = useState('');
   const [preview, setPreview] = useState<StockEntry[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -55,7 +56,7 @@ export function BulkImport({ activeGroup, existingItems, onComplete, onClose }: 
     for (const entry of valid) {
       let watchlistId = entry.watchlistId;
       if (entry.status === 'new') {
-        const item = await api.addStock(entry.symbol, entry.name);
+        const item = await api.addStock(entry.symbol, entry.name, assetType);
         watchlistId = item.id;
         updated.unshift({ ...item, groups: [] });
       }
