@@ -1,23 +1,10 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import type { Recommendation, RecommendationStock, WatchlistItem } from '../types';
-
-const cardStyle: React.CSSProperties = {
-  background: '#fff', borderRadius: '12px', padding: '24px',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.06)', border: '1px solid #e2e8f0',
-};
-
-const inputStyle: React.CSSProperties = {
-  border: '1.5px solid #e2e8f0', borderRadius: '8px',
-  padding: '9px 12px', fontSize: '13px', color: '#1e293b',
-  outline: 'none', boxSizing: 'border-box',
-};
-
-const btnStyle: React.CSSProperties = {
-  background: '#6366f1', color: '#fff', border: 'none',
-  borderRadius: '8px', padding: '9px 16px',
-  fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-};
 
 export function Recommendations() {
   const [date, setDate] = useState<string | null>(null);
@@ -77,161 +64,146 @@ export function Recommendations() {
 
   return (
     <div>
-      <div style={{ marginBottom: '20px' }}>
-        <h1 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>推薦選股</h1>
-        <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>每日排程掃描結果</p>
+      <div className="mb-5">
+        <h1 className="text-xl font-bold text-foreground mb-1">推薦選股</h1>
+        <p className="text-sm text-muted-foreground">每日排程掃描結果</p>
       </div>
 
-      <div style={cardStyle}>
-        {loading ? (
-          <p style={{ fontSize: '13px', color: '#94a3b8' }}>載入中...</p>
-        ) : !date ? (
-          <p style={{ fontSize: '13px', color: '#94a3b8' }}>尚無推薦資料，請等待排程執行。</p>
-        ) : (
-          <>
-            <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#64748b' }}>掃描日期：{date}</p>
-            {items.length === 0 ? (
-              <p style={{ fontSize: '13px', color: '#94a3b8' }}>今日無符合策略的標的。</p>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1.5px solid #e2e8f0' }}>
-                    {['代號', '名稱', '收盤價', '符合策略', ''].map((h) => (
-                      <th key={h} style={{ padding: '8px 10px', fontSize: '12px', fontWeight: 600, color: '#64748b', textAlign: 'left' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item) => {
-                    const inWatchlist = watchlistSymbols.has(item.symbol) || addedSymbols.has(item.symbol);
-                    return (
-                      <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '8px 10px', fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{item.symbol}</td>
-                        <td style={{ padding: '8px 10px', fontSize: '13px', color: '#374151' }}>{item.name}</td>
-                        <td style={{ padding: '8px 10px', fontSize: '13px', color: '#374151' }}>{item.close_price.toFixed(2)}</td>
-                        <td style={{ padding: '8px 10px' }}>
-                          {item.strategies.map((s) => (
-                            <span key={s} style={{
-                              display: 'inline-block', background: '#ede9fe', color: '#6366f1',
-                              borderRadius: '999px', padding: '2px 8px', fontSize: '11px',
-                              fontWeight: 500, marginRight: '4px',
-                            }}>
-                              {s}
-                            </span>
-                          ))}
-                        </td>
-                        <td style={{ padding: '8px 10px' }}>
-                          <button
-                            onClick={() => handleAdd(item)}
-                            disabled={inWatchlist}
-                            style={{
-                              background: inWatchlist ? 'none' : '#6366f1', color: inWatchlist ? '#94a3b8' : '#fff',
-                              border: inWatchlist ? '1px solid #e2e8f0' : 'none',
-                              borderRadius: '6px', padding: '4px 10px', fontSize: '12px',
-                              fontWeight: 500, cursor: inWatchlist ? 'default' : 'pointer',
-                            }}
-                          >
-                            {inWatchlist ? '已追蹤' : '加入追蹤'}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </>
-        )}
-      </div>
+      <Card>
+        <CardContent className="pt-5">
+          {loading ? (
+            <p className="text-sm text-muted-foreground">載入中...</p>
+          ) : !date ? (
+            <p className="text-sm text-muted-foreground">尚無推薦資料，請等待排程執行。</p>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground mb-4">掃描日期：{date}</p>
+              {items.length === 0 ? (
+                <p className="text-sm text-muted-foreground">今日無符合策略的標的。</p>
+              ) : (
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b-2 border-border">
+                      {['代號', '名稱', '收盤價', '符合策略', ''].map((h) => (
+                        <th key={h} className="px-2.5 py-2 text-xs font-semibold text-muted-foreground text-left">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item) => {
+                      const inWatchlist = watchlistSymbols.has(item.symbol) || addedSymbols.has(item.symbol);
+                      return (
+                        <tr key={item.id} className="border-b border-border/50">
+                          <td className="px-2.5 py-2 text-[13px] font-semibold text-foreground">{item.symbol}</td>
+                          <td className="px-2.5 py-2 text-[13px] text-foreground">{item.name}</td>
+                          <td className="px-2.5 py-2 text-[13px] text-foreground">{item.close_price.toFixed(2)}</td>
+                          <td className="px-2.5 py-2">
+                            {item.strategies.map((s) => (
+                              <Badge key={s} variant="secondary" className="mr-1 text-[11px]">{s}</Badge>
+                            ))}
+                          </td>
+                          <td className="px-2.5 py-2">
+                            <Button
+                              size="sm"
+                              variant={inWatchlist ? 'secondary' : 'default'}
+                              disabled={inWatchlist}
+                              onClick={() => handleAdd(item)}
+                            >
+                              {inWatchlist ? '已追蹤' : '加入追蹤'}
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Stock pool management */}
-      <div style={{ marginTop: '32px' }}>
-        <button
+      <div className="mt-8">
+        <Button
+          variant="outline"
           onClick={() => setPoolOpen((v) => !v)}
-          style={{
-            background: 'none', border: '1px solid #e2e8f0', borderRadius: '8px',
-            padding: '8px 16px', fontSize: '13px', fontWeight: 600, color: '#64748b',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
-          }}
+          className="gap-1.5"
         >
           <span>管理股票池</span>
           {!stocksLoading && (
-            <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 400 }}>
-              {stocks.length} / 120 支
-            </span>
+            <span className="text-xs text-muted-foreground font-normal">{stocks.length} / 120 支</span>
           )}
-          <span style={{ fontSize: '11px', color: '#94a3b8' }}>{poolOpen ? '▲' : '▼'}</span>
-        </button>
+          <span className="text-xs text-muted-foreground">{poolOpen ? '▲' : '▼'}</span>
+        </Button>
 
         {poolOpen && (
-          <div style={{ ...cardStyle, marginTop: '12px', maxWidth: '560px' }}>
-            {stocksLoading ? (
-              <p style={{ fontSize: '13px', color: '#94a3b8' }}>載入中...</p>
-            ) : (
-              <>
-                <form onSubmit={handleAddStock} style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                  <input
-                    type="text"
-                    placeholder="代號（如 2330）"
-                    value={newSymbol}
-                    onChange={(e) => setNewSymbol(e.target.value)}
-                    style={{ ...inputStyle, width: '130px' }}
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="名稱（如 台積電）"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    style={{ ...inputStyle, width: '130px' }}
-                    required
-                  />
-                  <button type="submit" style={btnStyle}>新增</button>
-                  {stockError && (
-                    <span style={{ fontSize: '12px', color: '#ef4444', alignSelf: 'center' }}>{stockError}</span>
-                  )}
-                </form>
+          <Card className="mt-3 max-w-[560px]">
+            <CardContent className="pt-5">
+              {stocksLoading ? (
+                <p className="text-sm text-muted-foreground">載入中...</p>
+              ) : (
+                <>
+                  <form onSubmit={handleAddStock} className="flex gap-2 mb-4 flex-wrap items-center">
+                    <Input
+                      type="text"
+                      placeholder="代號（如 2330）"
+                      value={newSymbol}
+                      onChange={(e) => setNewSymbol(e.target.value)}
+                      className="w-32"
+                      required
+                    />
+                    <Input
+                      type="text"
+                      placeholder="名稱（如 台積電）"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      className="w-32"
+                      required
+                    />
+                    <Button type="submit">新增</Button>
+                    {stockError && (
+                      <span className="text-xs text-destructive self-center">{stockError}</span>
+                    )}
+                  </form>
 
-                <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '1.5px solid #e2e8f0' }}>
-                        {['代號', '名稱', '類型', ''].map((h) => (
-                          <th key={h} style={{ padding: '8px 10px', fontSize: '12px', fontWeight: 600, color: '#64748b', textAlign: 'left' }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {stocks.map((s) => (
-                        <tr key={s.symbol} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '8px 10px', fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{s.symbol}</td>
-                          <td style={{ padding: '8px 10px', fontSize: '13px', color: '#374151' }}>{s.name}</td>
-                          <td style={{ padding: '8px 10px' }}>
-                            <span style={{
-                              fontSize: '11px', padding: '2px 8px', borderRadius: '999px',
-                              background: s.is_default ? '#ede9fe' : '#f0fdf4',
-                              color: s.is_default ? '#6366f1' : '#16a34a',
-                              fontWeight: 500,
-                            }}>
-                              {s.is_default ? '預設' : '自訂'}
-                            </span>
-                          </td>
-                          <td style={{ padding: '8px 10px' }}>
-                            <button
-                              onClick={() => handleDeleteStock(s.symbol)}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#ef4444', padding: '2px 8px' }}
-                            >
-                              移除
-                            </button>
-                          </td>
+                  <div className="max-h-80 overflow-y-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-border">
+                          {['代號', '名稱', '類型', ''].map((h) => (
+                            <th key={h} className="px-2.5 py-2 text-xs font-semibold text-muted-foreground text-left">{h}</th>
+                          ))}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
-          </div>
+                      </thead>
+                      <tbody>
+                        {stocks.map((s) => (
+                          <tr key={s.symbol} className="border-b border-border/50">
+                            <td className="px-2.5 py-2 text-[13px] font-semibold text-foreground">{s.symbol}</td>
+                            <td className="px-2.5 py-2 text-[13px] text-foreground">{s.name}</td>
+                            <td className="px-2.5 py-2">
+                              <Badge variant={s.is_default ? 'default' : 'secondary'} className="text-[11px]">
+                                {s.is_default ? '預設' : '自訂'}
+                              </Badge>
+                            </td>
+                            <td className="px-2.5 py-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => handleDeleteStock(s.symbol)}
+                              >
+                                移除
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
