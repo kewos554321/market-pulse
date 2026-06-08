@@ -5,7 +5,10 @@ import { StockSearch } from '../components/StockSearch';
 import { GroupPicker } from '../components/GroupPicker';
 import { BulkImport } from '../components/BulkImport';
 import { AlgorithmTemplatePicker } from '../components/AlgorithmTemplatePicker';
-import { Button } from '../components/ui/button';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import type { WatchlistItem, Group, AlgorithmTemplate } from '../types';
 
 export function WatchlistNew() {
@@ -111,43 +114,42 @@ export function WatchlistNew() {
   }
 
   return (
-    <div>
+    <div className="space-y-4">
       {/* Header */}
-      <div className="mb-4">
-        <h1 className="m-0 mb-1 text-xl font-bold text-slate-900">追蹤清單</h1>
-        <p className="m-0 text-[13px] text-slate-500">管理你想追蹤的股票</p>
+      <div>
+        <h1 className="text-xl font-bold text-foreground">追蹤清單</h1>
+        <p className="text-sm text-muted-foreground">管理你想追蹤的股票</p>
       </div>
 
       {/* Group tabs */}
-      <div className="flex items-center border-b border-slate-200 mb-4">
+      <div className="flex items-center border-b border-border">
         <div className="flex items-center overflow-x-auto flex-1 min-w-0">
           <button
             onClick={() => { setActiveGroupId(null); setShowBulkImport(false); }}
-            className={`px-4 py-2.5 text-[13px] border-0 bg-transparent cursor-pointer whitespace-nowrap border-b-2 -mb-px transition-colors ${
+            className={cn(
+              'px-4 py-2.5 text-sm border-0 bg-transparent cursor-pointer whitespace-nowrap border-b-2 -mb-px transition-colors',
               activeGroupId === null
-                ? 'text-indigo-500 font-semibold border-indigo-500'
-                : 'text-slate-400 font-normal border-transparent'
-            }`}
+                ? 'text-primary font-semibold border-primary'
+                : 'text-muted-foreground font-normal border-transparent'
+            )}
           >
             全部
           </button>
-          {groups.map((g) => {
-            const isActive = g.id === activeGroupId;
-            return (
-              <div key={g.id} className="flex items-center relative">
-                <button
-                  onClick={() => { setActiveGroupId(g.id); setShowBulkImport(false); }}
-                  className={`px-4 py-2.5 text-[13px] border-0 bg-transparent cursor-pointer whitespace-nowrap border-b-2 -mb-px transition-colors ${
-                    isActive
-                      ? 'text-indigo-500 font-semibold border-indigo-500'
-                      : 'text-slate-400 font-normal border-transparent'
-                  }`}
-                >
-                  {g.name}
-                </button>
-              </div>
-            );
-          })}
+          {groups.map((g) => (
+            <div key={g.id} className="flex items-center relative">
+              <button
+                onClick={() => { setActiveGroupId(g.id); setShowBulkImport(false); }}
+                className={cn(
+                  'px-4 py-2.5 text-sm border-0 bg-transparent cursor-pointer whitespace-nowrap border-b-2 -mb-px transition-colors',
+                  g.id === activeGroupId
+                    ? 'text-primary font-semibold border-primary'
+                    : 'text-muted-foreground font-normal border-transparent'
+                )}
+              >
+                {g.name}
+              </button>
+            </div>
+          ))}
           {showNewGroupInput ? (
             <form
               onSubmit={async (e) => {
@@ -169,7 +171,7 @@ export function WatchlistNew() {
                   if (e.key === 'Escape') { setShowNewGroupInput(false); setNewGroupName(''); }
                 }}
                 placeholder="群組名稱..."
-                className="border-[1.5px] border-indigo-500 rounded-md px-2 py-1 text-xs outline-none w-24"
+                className="border border-primary rounded-md px-2 py-1 text-xs outline-none w-24 bg-background"
               />
               <Button type="submit" size="xs">建立</Button>
               <Button
@@ -184,7 +186,7 @@ export function WatchlistNew() {
           ) : (
             <button
               onClick={() => setShowNewGroupInput(true)}
-              className="px-3 py-2.5 text-xs border-0 bg-transparent cursor-pointer text-slate-400 whitespace-nowrap border-b-2 border-transparent -mb-px"
+              className="px-3 py-2.5 text-xs border-0 bg-transparent cursor-pointer text-muted-foreground whitespace-nowrap border-b-2 border-transparent -mb-px hover:text-foreground transition-colors"
             >
               + 新增群組
             </button>
@@ -218,7 +220,7 @@ export function WatchlistNew() {
 
       {/* Bulk import + delete group */}
       {activeGroupId && activeGroup && (
-        <div className="mb-2">
+        <div>
           {showBulkImport ? (
             <BulkImport
               activeGroup={activeGroup}
@@ -228,10 +230,10 @@ export function WatchlistNew() {
             />
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setShowBulkImport(true)}>
+              <Button variant="outline" size="sm" onClick={() => setShowBulkImport(true)}>
                 ↑ 批量匯入到「{activeGroup.name}」
               </Button>
-              <Button variant="destructive" onClick={() => handleDeleteGroup(activeGroupId)}>
+              <Button variant="destructive" size="sm" onClick={() => handleDeleteGroup(activeGroupId)}>
                 刪除群組
               </Button>
             </div>
@@ -240,115 +242,122 @@ export function WatchlistNew() {
       )}
 
       {/* Add stock */}
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 mb-4">
-        <div className="text-xs font-semibold text-slate-700 mb-2">新增股票</div>
-        <form onSubmit={handleAdd} className="flex gap-2 items-start">
-          <StockSearch onSelect={(symbol, name) => setSelected({ symbol, name })} />
-          {selected && (
-            <span className="self-center text-xs text-indigo-500 bg-indigo-50 px-2.5 py-1 rounded-full whitespace-nowrap">
-              {selected.symbol} {selected.name}
-            </span>
-          )}
-          <button
-            type="submit"
-            disabled={!selected}
-            className={`px-5 py-[10px] text-[13px] font-semibold rounded-[8px] border-0 whitespace-nowrap ${
-              selected
-                ? 'bg-indigo-500 text-white cursor-pointer'
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-            }`}
-          >新增</button>
-        </form>
-        {error && <p className="text-red-500 text-[13px] mt-2 mb-0">{error}</p>}
-      </div>
+      <Card>
+        <CardContent className="pt-4">
+          <p className="text-xs font-semibold text-foreground mb-2">新增股票</p>
+          <form onSubmit={handleAdd} className="flex gap-2 items-start">
+            <StockSearch onSelect={(symbol, name) => setSelected({ symbol, name })} />
+            {selected && (
+              <Badge variant="secondary" className="self-center whitespace-nowrap text-primary bg-primary/10">
+                {selected.symbol} {selected.name}
+              </Badge>
+            )}
+            <Button
+              type="submit"
+              disabled={!selected}
+              className="disabled:opacity-100 disabled:bg-secondary disabled:text-muted-foreground disabled:cursor-not-allowed disabled:pointer-events-auto"
+            >
+              新增
+            </Button>
+          </form>
+          {error && <p className="text-destructive text-sm mt-2">{error}</p>}
+        </CardContent>
+      </Card>
 
       {/* Stock list */}
       <div className="flex flex-col gap-2.5">
         {filteredItems.length === 0 && (
-          <div className="bg-white rounded-xl p-8 text-center text-slate-400 text-sm border border-slate-200">
-            {activeGroupId
-              ? `「${activeGroup?.name}」群組還沒有股票，點上方批量匯入或新增股票後指定群組`
-              : '還沒有追蹤的股票，從上方搜尋新增吧'}
-          </div>
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground text-sm">
+              {activeGroupId
+                ? `「${activeGroup?.name}」群組還沒有股票，點上方批量匯入或新增股票後指定群組`
+                : '還沒有追蹤的股票，從上方搜尋新增吧'}
+            </CardContent>
+          </Card>
         )}
         {filteredItems.map((item) => (
-          <div
-            key={item.id}
-            className={`bg-white rounded-xl p-4 shadow-sm border border-slate-200 transition-opacity ${
-              item.enabled ? 'opacity-100' : 'opacity-60'
-            }`}
-          >
-            <div className="flex items-center gap-4 mb-2.5">
-              <span className={`w-2 h-2 rounded-full shrink-0 ${
-                item.enabled ? 'bg-emerald-500' : 'bg-slate-300'
-              }`} />
-              <div className="flex-1 flex items-center gap-2">
-                <span className="font-bold text-slate-900 text-sm">{item.symbol}</span>
-                <span className="text-slate-600 text-sm">{item.name}</span>
-                <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
-                  item.enabled
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : 'bg-slate-100 text-slate-500'
-                }`}>
-                  {item.enabled ? '追蹤中' : '已暫停'}
-                </span>
+          <Card key={item.id} className={cn('transition-opacity', !item.enabled && 'opacity-60')}>
+            <CardContent className="pt-4">
+              {/* Top row */}
+              <div className="flex items-center gap-3 mb-2.5">
+                <span className={cn(
+                  'w-2 h-2 rounded-full shrink-0',
+                  item.enabled ? 'bg-emerald-500' : 'bg-muted-foreground/40'
+                )} />
+                <div className="flex-1 flex items-center gap-2 flex-wrap min-w-0">
+                  <span className="font-bold text-foreground text-sm">{item.symbol}</span>
+                  <span className="text-muted-foreground text-sm">{item.name}</span>
+                  <Badge
+                    className={cn(
+                      item.enabled
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-secondary text-muted-foreground'
+                    )}
+                    variant="outline"
+                  >
+                    {item.enabled ? '追蹤中' : '已暫停'}
+                  </Badge>
+                </div>
+                <div className="flex gap-1.5 items-center shrink-0">
+                  {item.algorithmTemplate ? (
+                    <Badge variant="outline" className="text-primary border-primary/30 bg-primary/5">
+                      模板：{item.algorithmTemplate.name}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-muted-foreground">
+                      自訂算法
+                    </Badge>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/watchlist/${item.id}/algorithm`)}
+                  >
+                    設定算法
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleToggle(item)}>
+                    {item.enabled ? '暫停' : '啟用'}
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => handleDelete(item.id)}>
+                    刪除
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2 items-center">
-                {item.algorithmTemplate ? (
-                  <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-200">
-                    模板：{item.algorithmTemplate.name}
-                  </span>
-                ) : (
-                  <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-50 text-slate-500 border border-slate-200">
-                    自訂算法
-                  </span>
-                )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(`/watchlist/${item.id}/algorithm`)}
-                >
-                  設定算法
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => handleToggle(item)}>
-                  {item.enabled ? '暫停' : '啟用'}
-                </Button>
-                <Button variant="destructive" size="sm" onClick={() => handleDelete(item.id)}>
-                  刪除
-                </Button>
-              </div>
-            </div>
 
-            {/* Group tags */}
-            <div className="flex items-center gap-1.5 flex-wrap relative">
-              {item.groups.map((g) => (
-                <span
-                  key={g.id}
-                  onClick={() => handleToggleGroup(item, g.id)}
-                  className="text-[11px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full font-medium cursor-pointer"
-                >
-                  {g.name} ×
-                </span>
-              ))}
-              <div className="relative">
-                <button
-                  onClick={() => setPickerOpenFor(pickerOpenFor === item.id ? null : item.id)}
-                  className="text-[11px] text-slate-400 bg-transparent border border-dashed border-slate-300 rounded-full px-2 py-0.5 cursor-pointer"
-                >
-                  + 群組
-                </button>
-                {pickerOpenFor === item.id && (
-                  <GroupPicker
-                    groups={groups}
-                    selectedGroupIds={item.groups.map((g) => g.id)}
-                    onToggle={(gid) => handleToggleGroup(item, gid)}
-                    onCreate={(name) => handleCreateAndAssign(item.id, name)}
-                    onClose={() => setPickerOpenFor(null)}
-                  />
-                )}
+              {/* Group tags */}
+              <div className="flex items-center gap-1.5 flex-wrap relative">
+                {item.groups.map((g) => (
+                  <Badge
+                    key={g.id}
+                    variant="secondary"
+                    className="cursor-pointer text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
+                    onClick={() => handleToggleGroup(item, g.id)}
+                  >
+                    {g.name} ×
+                  </Badge>
+                ))}
+                <div className="relative">
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={() => setPickerOpenFor(pickerOpenFor === item.id ? null : item.id)}
+                    className="text-muted-foreground border border-dashed border-border rounded-full"
+                  >
+                    + 群組
+                  </Button>
+                  {pickerOpenFor === item.id && (
+                    <GroupPicker
+                      groups={groups}
+                      selectedGroupIds={item.groups.map((g) => g.id)}
+                      onToggle={(gid) => handleToggleGroup(item, gid)}
+                      onCreate={(name) => handleCreateAndAssign(item.id, name)}
+                      onClose={() => setPickerOpenFor(null)}
+                    />
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>
