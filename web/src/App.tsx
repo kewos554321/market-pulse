@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink, Link } from 'react-router-dom';
 import { Home } from './pages/Home';
 import { TwStocks } from './pages/TwStocks';
 import { UsStocks } from './pages/UsStocks';
@@ -7,7 +7,6 @@ import { Fx } from './pages/Fx';
 import { AlgorithmEditor } from './pages/AlgorithmEditor';
 import { AlgorithmLibrary } from './pages/AlgorithmLibrary';
 import { Settings } from './pages/Settings';
-import { Recommendations } from './pages/Recommendations';
 import { cn } from '@/lib/utils';
 
 export function App() {
@@ -15,23 +14,20 @@ export function App() {
     <BrowserRouter>
       <div className="min-h-screen bg-background font-sans">
         <nav className="flex items-center bg-card border-b border-border px-6 sticky top-0 z-[100] shadow-xs">
-          <span className="font-extrabold text-primary text-[15px] mr-8 py-3.5">
+          <Link to="/" className="font-extrabold text-primary text-[15px] mr-8 py-3.5 no-underline">
             Market Pulse
-          </span>
+          </Link>
           {[
-            { to: '/', label: '首頁', exact: true },
-            { to: '/tw-stocks', label: '台股', exact: false },
-            { to: '/us-stocks', label: '美股', exact: false },
-            { to: '/crypto', label: '加密貨幣', exact: false },
-            { to: '/fx', label: '匯率', exact: false },
-            { to: '/recommendations', label: '推薦', exact: false },
-            { to: '/settings', label: '設定', exact: false },
-            { to: '/algorithm-library', label: '算法庫', exact: false },
-          ].map(({ to, label, exact }) => (
+            { to: '/tw-stocks', label: '台股' },
+            { to: '/us-stocks', label: '美股' },
+            { to: '/crypto', label: '加密貨幣' },
+            { to: '/fx', label: '匯率' },
+            { to: '/settings', label: '設定' },
+            { to: '/algorithm-library', label: '算法庫' },
+          ].map(({ to, label }) => (
             <NavLink
               key={to}
               to={to}
-              end={exact}
               className={({ isActive }) =>
                 cn(
                   'py-3.5 px-4 text-[13px] no-underline transition-colors border-b-2',
@@ -53,7 +49,6 @@ export function App() {
             <Route path="/crypto/*" element={<Crypto />} />
             <Route path="/fx/*" element={<Fx />} />
             <Route path="/watchlist/:id/algorithm" element={<AlgorithmEditor />} />
-            <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/algorithm-library" element={<AlgorithmLibrary />} />
           </Routes>
